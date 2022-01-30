@@ -30,8 +30,8 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	logger.PduSessLog.Infoln("In HandlePDUSessionSMContextCreate")
 
 	// WEIT
-	if err := smf_context.DynamicLoadLinks(); err != nil {
-		logger.PduSessLog.Errorf("ERROR reloading links [%s]", err)
+	if err := smf_context.DynamicLoadLinksGET(); err != nil {
+		logger.PduSessLog.Errorf("ERROR reloading links [%s] - using the the pre-loaded ones......", err)
 	}
 
 	// Check has PDU Session Establishment Request
