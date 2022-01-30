@@ -11,7 +11,7 @@ RUN apk add --no-cache bash \
 
 RUN pip install --upgrade pip setuptools
 
-RUN pip install --no-cache-dir gevent==1.2.1 flask>=1.0.0 requests==2.13.0 \
+RUN pip install --no-cache-dir gevent==1.2.1 flask>=1.0.0 requests==2.13.0 pyyaml \
   && apk del .build-deps
 
 RUN mkdir -p /api

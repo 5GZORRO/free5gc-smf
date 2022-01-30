@@ -3,6 +3,8 @@ import json
 import os
 import requests
 import sys
+import yaml
+
 
 from gevent.wsgi import WSGIServer
 from werkzeug.exceptions import HTTPException
@@ -17,6 +19,9 @@ proxy.debug = True
 server = None
 
 proxy_server = None
+
+
+links = dict()
 
 
 def setServer(s):
@@ -46,17 +51,36 @@ def hello():
     return ("Greetings from the SMF-API server! ")
 
 
-@proxy.route("/links")
+@proxy.route("/links", methods=['POST'])
+def links_create():
+    sys.stdout.write ('Enter POST /links\n')
+    value = getMessagePayload()
+    global links
+    links = value
+#     return """
+# links:
+#   - A: gNB1
+#     B: UPF-R1
+# 
+#   - A: UPF-R1
+#     B: UPF-C3
+# """
+
+
+
+@proxy.route("/links", methods=['GET'])
 def links():
     sys.stdout.write ('Enter /links\n')
-    return """
-links:
-  - A: gNB1
-    B: UPF-R1
+    return yaml.dump(links)
+# """
+# links:
+#   - A: gNB1
+#     B: UPF-R1
+# 
+#   - A: UPF-R1
+#     B: UPF-C3
+# """
 
-  - A: UPF-R1
-    B: UPF-C3
-"""
 
 
 def main():
