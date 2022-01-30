@@ -141,7 +141,7 @@ type RoutingConfig struct {
 
 // UserPlaneInformation describe core network userplane information
 type UserPlaneInformation struct {
-	UPNodes map[string]UPNode `yaml:"up_nodes"`
+	UPNodes map[string]UPNode `yaml:"up_nodes,omitempty"`
 	Links   []UPLink          `yaml:"links"`
 }
 

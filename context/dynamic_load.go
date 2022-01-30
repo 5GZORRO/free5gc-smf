@@ -6,53 +6,12 @@ import (
 )
 
 
-const SmfConfig = `userplane_information:
-    up_nodes:
-      gNB1:
-        type: AN
-        an_ip: 172.15.0.211
+const SmfConfig = `links:
+  - A: gNB1
+    B: UPF-R1
 
-      UPF-R1:
-        type: UPF
-        node_id: upf-r1.free5gc.org
-        sNssaiUpfInfos:
-          - sNssai:
-              sst: 1
-              sd: 010203
-            dnnUpfInfoList:
-              - dnn: internet
-        interfaces:
-          - interfaceType: N3
-            endpoints:
-              - 172.15.0.6
-            networkInstance: internet
-          - interfaceType: N9
-            endpoints:
-              - 172.15.0.6
-            networkInstance: internet
-
-      UPF-C3:
-        type: UPF
-        node_id: upf-c3.free5gc.org
-        sNssaiUpfInfos:
-          - sNssai:
-              sst: 1
-              sd: 010203
-            dnnUpfInfoList:
-              - dnn: internet
-                pools:
-                  - cidr: 60.63.0.0/24
-        interfaces:
-          - interfaceType: N9
-            endpoints:
-              - 172.15.0.11
-            networkInstance: internet
-    links:
-      - A: gNB1
-        B: UPF-R1
-
-      - A: UPF-R1
-        B: UPF-C3
+  - A: UPF-R1
+    B: UPF-C3
 `
 
 const UERoutingConfig = `ueRoutingInfo:
@@ -85,4 +44,15 @@ func DynamicLoad() error {
 
         SMF_Self().UserPlaneInformation = NewUserPlaneInformation(&SmfConfiguration.UserPlaneInformation)
         return nil
+}
+
+func DynamicLoadLinks() error {
+	// we use upi but only links applicable here....
+	SmfLinksConf := factory.UserPlaneInformation{}
+	if yamlErr := yaml.Unmarshal([]byte(SmfConfig), &SmfLinksConf); yamlErr != nil {
+		return yamlErr
+	}
+
+	ReloadLinks(SMF_Self().UserPlaneInformation, &SmfLinksConf)
+	return nil
 }

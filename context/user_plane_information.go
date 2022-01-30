@@ -177,6 +177,36 @@ func NewUserPlaneInformation(upTopology *factory.UserPlaneInformation) *UserPlan
 	return userplaneInformation
 }
 
+func ReloadLinks(upi *UserPlaneInformation, links *factory.UserPlaneInformation) {
+	// Iterate through *existing* UPF list and rest their links
+	for _, node := range upi.UPFs {
+		logger.InitLog.Debugf("Reset Links for UPF %s", string(node.UPF.NodeID.NodeIdValue))
+		node.Links = make([]*UPNode, 0)
+		//node.Links = []*UPNode{}
+	}
+	// Iterate through *existing* AN list and rest their links
+	for _, node := range upi.AccessNetwork {
+		logger.InitLog.Debugf("Reset Links for AN(s)")// AN does not have UPF.., string(node.UPF.NodeID.NodeIdValue))
+		node.Links = make([]*UPNode, 0)
+		//node.Links = []*UPNode{}
+	}
+	// Now rebuild Links list for the corresponding UPFs/ANs
+	for _, link := range links.Links {
+		nodeA := upi.UPNodes[link.A]
+		nodeB := upi.UPNodes[link.B]
+		if nodeA == nil || nodeB == nil {
+			logger.InitLog.Warningf("UPLink [%s] <=> [%s] not establish\n", link.A, link.B)
+			continue
+		}
+		nodeA.Links = append(nodeA.Links, nodeB)
+		nodeB.Links = append(nodeB.Links, nodeA)
+		if nodeA.Type == UPNODE_UPF && nodeA.Type == UPNODE_UPF {
+			logger.InitLog.Debugf("A[%s] -> B[%s]", string(nodeA.UPF.NodeID.NodeIdValue), string(nodeB.UPF.NodeID.NodeIdValue))
+		}
+	}
+
+}
+
 func NewUEIPPool(factoryPool *factory.UEIPPool) *UeIPPool {
 	_, ipNet, err := net.ParseCIDR(factoryPool.Cidr)
 	if err != nil {

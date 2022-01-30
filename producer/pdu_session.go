@@ -29,6 +29,11 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	response.JsonData = new(models.SmContextCreatedData)
 	logger.PduSessLog.Infoln("In HandlePDUSessionSMContextCreate")
 
+	// WEIT
+	if err := smf_context.DynamicLoadLinks(); err != nil {
+		logger.PduSessLog.Errorf("ERROR reloading links [%s]", err)
+	}
+
 	// Check has PDU Session Establishment Request
 	m := nas.NewMessage()
 	if err := m.GsmMessageDecode(&request.BinaryDataN1SmMessage); err != nil ||
