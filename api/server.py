@@ -21,7 +21,7 @@ server = None
 proxy_server = None
 
 
-links = dict()
+links = {}
 
 
 def setServer(s):
@@ -52,36 +52,24 @@ def hello():
 
 
 @proxy.route("/links", methods=['POST'])
-def links_create():
+def links_post():
     sys.stdout.write ('Enter POST /links\n')
     value = getMessagePayload()
     global links
     links = value
     return yaml.dump(links)
-#     return """
-# links:
-#   - A: gNB1
-#     B: UPF-R1
-# 
-#   - A: UPF-R1
-#     B: UPF-C3
-# """
-
 
 
 @proxy.route("/links", methods=['GET'])
-def links():
+def links_get():
     sys.stdout.write ('Enter /links\n')
-    return yaml.dump(links)
-# """
-# links:
-#   - A: gNB1
-#     B: UPF-R1
-# 
-#   - A: UPF-R1
-#     B: UPF-C3
-# """
-
+    global links
+    if not links:
+        response = flask.jsonify({'NOT_FOUND': 404})
+        response.status_code = 404
+        return response
+    else:
+        return yaml.dump(links)
 
 
 def main():

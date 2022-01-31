@@ -1,6 +1,7 @@
 package context
 
 import (
+	"fmt"
 	"errors"
 	"gopkg.in/yaml.v2"
 	"github.com/free5gc/smf/factory"
@@ -24,6 +25,10 @@ func ReadFromService(SUPI string) ([]byte, error) {
 	if err2 != nil {
 		logger.CtxLog.Errorf(err2.Error())
 		return nil, errors.New(err2.Error())
+	}
+	if res.StatusCode != http.StatusOK {
+		logger.CtxLog.Errorf("None OK status code: %s", res.StatusCode)
+		return nil, fmt.Errorf("None OK status code: %s", res.StatusCode)
 	}
 
 	resData, err3 := ioutil.ReadAll(res.Body)
