@@ -180,7 +180,7 @@ func NewUserPlaneInformation(upTopology *factory.UserPlaneInformation) *UserPlan
 func ReloadLinks(upi *UserPlaneInformation, links *factory.UserPlaneInformation) {
 	// Iterate through *existing* UPF list and rest their links
 	for _, node := range upi.UPFs {
-		logger.InitLog.Debugf("Reset Links for UPF %s", string(node.UPF.NodeID.NodeIdValue))
+		logger.InitLog.Debugf("ReloadLinks: Reset Links for UPF %s", string(node.UPF.NodeID.NodeIdValue))
 		node.Links = make([]*UPNode, 0)
 		//node.Links = []*UPNode{}
 	}
@@ -195,13 +195,13 @@ func ReloadLinks(upi *UserPlaneInformation, links *factory.UserPlaneInformation)
 		nodeA := upi.UPNodes[link.A]
 		nodeB := upi.UPNodes[link.B]
 		if nodeA == nil || nodeB == nil {
-			logger.InitLog.Warningf("UPLink [%s] <=> [%s] not establish\n", link.A, link.B)
+			logger.InitLog.Warningf("ReloadLinks: UPLink [%s] <=> [%s] not establish\n", link.A, link.B)
 			continue
 		}
 		nodeA.Links = append(nodeA.Links, nodeB)
 		nodeB.Links = append(nodeB.Links, nodeA)
 		if nodeA.Type == UPNODE_UPF && nodeA.Type == UPNODE_UPF {
-			logger.InitLog.Debugf("A[%s] -> B[%s]", string(nodeA.UPF.NodeID.NodeIdValue), string(nodeB.UPF.NodeID.NodeIdValue))
+			logger.InitLog.Debugf("ReloadLinks: A[%s] -> B[%s]", string(nodeA.UPF.NodeID.NodeIdValue), string(nodeB.UPF.NodeID.NodeIdValue))
 		}
 	}
 

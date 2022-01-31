@@ -57,6 +57,7 @@ def links_create():
     value = getMessagePayload()
     global links
     links = value
+    return yaml.dump(links)
 #     return """
 # links:
 #   - A: gNB1

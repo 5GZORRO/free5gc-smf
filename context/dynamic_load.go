@@ -12,47 +12,36 @@ import (
 )
 
 
-const SmfConfig = `links:
-  - A: gNB1
-    B: UPF-R1
-
-  - A: UPF-R1
-    B: UPF-C3
-`
-func DynamicLoadLinks() error {
-	// we use upi but only links applicable here....
-	SmfLinksConf := factory.UserPlaneInformation{}
-	if yamlErr := yaml.Unmarshal([]byte(SmfConfig), &SmfLinksConf); yamlErr != nil {
-		return yamlErr
-	}
-
-	ReloadLinks(SMF_Self().UserPlaneInformation, &SmfLinksConf)
-	return nil
-}
-
-func DynamicLoadLinksGET() error {
-
+func ReadFromService() ([]byte, error) {
 	os.Setenv("GODEBUG", "http2client=0")
 	req, err1 := http.NewRequest("GET", "http://172.15.0.211:30000/links", nil)
 	if err1 != nil {
 		logger.CtxLog.Errorf(err1.Error())
-		return errors.New(err1.Error())
+		return nil, errors.New(err1.Error())
 	}
 
 	res, err2 := new(http.Client).Do(req)
 	if err2 != nil {
 		logger.CtxLog.Errorf(err2.Error())
-		return errors.New(err2.Error())
+		return nil, errors.New(err2.Error())
 	}
 
 	resData, err3 := ioutil.ReadAll(res.Body)
 	if err3 != nil {
 		logger.CtxLog.Errorf(err3.Error())
-		return errors.New(err3.Error())
+		return nil, errors.New(err3.Error())
 	}
 
 	logger.CtxLog.Infof(string(resData))
+	return resData, nil
+}
 
+func DynamicLoadLinksGET() error {
+	resData, err := ReadFromService()
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	logger.CtxLog.Infof("DynamicLoadLinksGET: resData = [%s]", string(resData))
 	// We fill into upi but only 'links' are currently applicable
 	SmfLinksConf := factory.UserPlaneInformation{}
 	if yamlErr := yaml.Unmarshal([]byte(resData), &SmfLinksConf); yamlErr != nil {
