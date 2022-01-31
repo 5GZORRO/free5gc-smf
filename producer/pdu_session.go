@@ -29,11 +29,6 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	response.JsonData = new(models.SmContextCreatedData)
 	logger.PduSessLog.Infoln("In HandlePDUSessionSMContextCreate")
 
-	// WEIT
-	if err := smf_context.DynamicLoadLinksGET(); err != nil {
-		logger.PduSessLog.Errorf("ERROR reloading links [%s] - using the the pre-loaded ones..", err)
-	}
-
 	// Check has PDU Session Establishment Request
 	m := nas.NewMessage()
 	if err := m.GsmMessageDecode(&request.BinaryDataN1SmMessage); err != nil ||
@@ -60,6 +55,10 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 
 	smContext.SMLock.Lock()
 	defer smContext.SMLock.Unlock()
+
+	if err := smf_context.DynamicLoadLinksGET(createData.Supi); err != nil {
+		logger.PduSessLog.Errorf("ERROR reloading links [%s] - using the the pre-loaded ones..", err)
+	}
 
 	// DNN Information from config
 	smContext.DNNInfo = smf_context.RetrieveDnnInformation(*createData.SNssai, createData.Dnn)

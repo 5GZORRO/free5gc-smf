@@ -12,7 +12,7 @@ import (
 )
 
 
-func ReadFromService() ([]byte, error) {
+func ReadFromService(SUPI string) ([]byte, error) {
 	os.Setenv("GODEBUG", "http2client=0")
 	req, err1 := http.NewRequest("GET", "http://172.15.0.211:30000/links", nil)
 	if err1 != nil {
@@ -36,8 +36,9 @@ func ReadFromService() ([]byte, error) {
 	return resData, nil
 }
 
-func DynamicLoadLinksGET() error {
-	resData, err := ReadFromService()
+func DynamicLoadLinksGET(SUPI string) error {
+	logger.CtxLog.Infof("DynamicLoadLinksGET: SUPI = [%s]", SUPI)
+	resData, err := ReadFromService(SUPI)
 	if err != nil {
 		return errors.New(err.Error())
 	}
@@ -45,7 +46,7 @@ func DynamicLoadLinksGET() error {
 	// We fill into upi but only 'links' are currently applicable
 	SmfLinksConf := factory.UserPlaneInformation{}
 	if yamlErr := yaml.Unmarshal([]byte(resData), &SmfLinksConf); yamlErr != nil {
-		// from string type already
+		// its from string type already
 		return yamlErr
 	}
 
