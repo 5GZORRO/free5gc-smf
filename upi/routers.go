@@ -10,39 +10,6 @@ import (
 	"github.com/free5gc/smf/logger"
 )
 
-//type UserPlaneInformationUPFsData struct {
-//	UPNodes map[string]UPNode `json:"up_nodes"`
-//}
-//
-//// UPNode represent the user plane node
-//type UPNode struct {
-//	Type                 string                 `json:"type"`
-//	NodeID               string                 `json:"node_id"`
-//	ANIP                 string                 `json:"an_ip"`
-//	Dnn                  string                 `json:"dnn"`
-//	SNssaiInfos          []SnssaiUpfInfoItem    `json:"sNssaiUpfInfos,omitempty"`
-//	InterfaceUpfInfoList []InterfaceUpfInfoItem `json:"interfaces,omitempty"`
-//}
-//
-//type SnssaiUpfInfoItem struct {
-//	SNssai         *models.Snssai   `json:"sNssai"`
-//	DnnUpfInfoList []DnnUpfInfoItem `json:"dnnUpfInfoList"`
-//}
-//
-//type InterfaceUpfInfoItem struct {
-//	InterfaceType   models.UpInterfaceType `json:"interfaceType"`
-//	Endpoints       []string               `json:"endpoints"`
-//	NetworkInstance string                 `json:"networkInstance"`
-//}
-//
-//type DnnUpfInfoItem struct {
-//	Dnn             string                  `json:"dnn"`
-//	DnaiList        []string                `json:"dnaiList"`
-//	PduSessionTypes []models.PduSessionType `json:"pduSessionTypes"`
-//	Pools           []UEIPPool              `json:"pools"`
-//}
-
-
 // Route is the information for every URI.
 type Route struct {
 	// Name is the name of this Route.

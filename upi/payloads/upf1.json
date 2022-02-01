@@ -1,0 +1,18 @@
+{
+    "up_nodes": {
+        "UPF-T5": {
+            "type": "UPF",
+            "node_id": "upf-t5.free5gc.org",
+            "interfaces": [
+                {
+                    "endpoints": ["172.15.0.26"],
+                    "networkInstance": "internet"
+                },
+                {
+                    "endpoints": ["172.15.0.29"],
+                    "networkInstance": "internet"
+                }            
+            ]
+        }
+    }
+}
