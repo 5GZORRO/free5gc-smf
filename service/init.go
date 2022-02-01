@@ -33,6 +33,8 @@ import (
 	"github.com/free5gc/smf/pfcp/message"
 	"github.com/free5gc/smf/pfcp/udp"
 	"github.com/free5gc/smf/util"
+
+	"github.com/free5gc/smf/upi"
 )
 
 type SMF struct{}
@@ -281,6 +283,7 @@ func (smf *SMF) Start() {
 			eventexposure.AddService(router)
 		}
 	}
+	upi.AddService(router)
 	udp.Run(pfcp.Dispatch)
 
 	for _, upf := range context.SMF_Self().UserPlaneInformation.UPFs {
