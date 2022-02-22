@@ -141,36 +141,36 @@ type RoutingConfig struct {
 
 // UserPlaneInformation describe core network userplane information
 type UserPlaneInformation struct {
-	UPNodes map[string]UPNode `yaml:"up_nodes,omitempty"`
-	Links   []UPLink          `yaml:"links"`
+	UPNodes map[string]UPNode `json:"up_nodes,omitempty" yaml:"up_nodes,omitempty"`
+	Links   []UPLink          `json:"links,omitempty" yaml:"links"`
 }
 
 // UPNode represent the user plane node
 type UPNode struct {
-	Type                 string                 `yaml:"type"`
-	NodeID               string                 `yaml:"node_id"`
-	ANIP                 string                 `yaml:"an_ip"`
-	Dnn                  string                 `yaml:"dnn"`
-	SNssaiInfos          []SnssaiUpfInfoItem    `yaml:"sNssaiUpfInfos,omitempty"`
-	InterfaceUpfInfoList []InterfaceUpfInfoItem `yaml:"interfaces,omitempty"`
+	Type                 string                 `json:"type" yaml:"type"`
+	NodeID               string                 `json:"node_id" yaml:"node_id"`
+	ANIP                 string                 `json:"an_ip" yaml:"an_ip"`
+	Dnn                  string                 `json:"dnn" yaml:"dnn"`
+	SNssaiInfos          []SnssaiUpfInfoItem    `json:"sNssaiUpfInfos,omitempty" yaml:"sNssaiUpfInfos,omitempty"`
+	InterfaceUpfInfoList []InterfaceUpfInfoItem `json:"interfaces,omitempty" yaml:"interfaces,omitempty"`
 }
 
 type InterfaceUpfInfoItem struct {
-	InterfaceType   models.UpInterfaceType `yaml:"interfaceType"`
-	Endpoints       []string               `yaml:"endpoints"`
-	NetworkInstance string                 `yaml:"networkInstance"`
+	InterfaceType   models.UpInterfaceType `json:"interfaceType yaml:"interfaceType"`
+	Endpoints       []string               `json:"endpoints" yaml:"endpoints"`
+	NetworkInstance string                 `json:"networkInstance yaml:"networkInstance"`
 }
 
 type SnssaiUpfInfoItem struct {
-	SNssai         *models.Snssai   `yaml:"sNssai"`
-	DnnUpfInfoList []DnnUpfInfoItem `yaml:"dnnUpfInfoList"`
+	SNssai         *models.Snssai   `json:"sNssai" yaml:"sNssai"`
+	DnnUpfInfoList []DnnUpfInfoItem `json:"dnnUpfInfoList" yaml:"dnnUpfInfoList"`
 }
 
 type DnnUpfInfoItem struct {
-	Dnn             string                  `yaml:"dnn"`
-	DnaiList        []string                `yaml:"dnaiList"`
-	PduSessionTypes []models.PduSessionType `yaml:"pduSessionTypes"`
-	Pools           []UEIPPool              `yaml:"pools"`
+	Dnn             string                  `json:"dnn" yaml:"dnn"`
+	DnaiList        []string                `json:"dnaiList" yaml:"dnaiList"`
+	PduSessionTypes []models.PduSessionType `json:"pduSessionTypes" yaml:"pduSessionTypes"`
+	Pools           []UEIPPool              `json:"pools" yaml:"pools"`
 }
 
 type UPLink struct {
@@ -206,3 +206,4 @@ func (r *RoutingConfig) GetVersion() string {
 	}
 	return ""
 }
+

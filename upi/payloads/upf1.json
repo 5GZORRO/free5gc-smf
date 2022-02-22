@@ -3,12 +3,25 @@
         "UPF-T5": {
             "type": "UPF",
             "node_id": "upf-t5.free5gc.org",
+            "sNssaiUpfInfos": [
+              {
+                  "sNssai": {"sst": 1, "sd": "010203"},
+                  "dnnUpfInfoList": [
+                      {
+                          "dnn": "internet",
+                          "pools": [{"cidr": "60.61.0.0/24"}]
+                      }
+                  ]
+              }
+            ],
             "interfaces": [
                 {
+                    "interfaceType": "N3",
                     "endpoints": ["172.15.0.26"],
                     "networkInstance": "internet"
                 },
                 {
+                    "interfaceType": "N9",
                     "endpoints": ["172.15.0.29"],
                     "networkInstance": "internet"
                 }            

@@ -2,54 +2,122 @@ package upi
 
 import (
 	"net/http"
+	"net"
 	"github.com/free5gc/smf/logger"
 	"github.com/gin-gonic/gin"
+	//"github.com/free5gc/openapi/models"
+	smf_context "github.com/free5gc/smf/context"
+	"github.com/free5gc/pfcp/pfcpType"
+	"github.com/free5gc/smf/pfcp/message"
+	"github.com/free5gc/smf/factory"
 )
 
-type UserPlaneInformation struct {
-	UPNodes map[string]UPNode `json:"up_nodes"`
+func AddUPFs(upi *smf_context.UserPlaneInformation, upTopology *factory.UserPlaneInformation) {
+	for name, node := range upTopology.UPNodes {
+		upNode := new(smf_context.UPNode)
+		upNode.Type = smf_context.UPNodeType(node.Type)
+		switch upNode.Type {
+		case smf_context.UPNODE_UPF:
+			// ParseIp() always return 16 bytes
+			// so we can't use the length of return ip to separate IPv4 and IPv6
+			// This is just a work around
+			var ip net.IP
+			if net.ParseIP(node.NodeID).To4() == nil {
+				ip = net.ParseIP(node.NodeID)
+			} else {
+				ip = net.ParseIP(node.NodeID).To4()
+			}
+
+			switch len(ip) {
+			case net.IPv4len:
+				upNode.NodeID = pfcpType.NodeID{
+					NodeIdType:  pfcpType.NodeIdTypeIpv4Address,
+					NodeIdValue: ip,
+				}
+			case net.IPv6len:
+				upNode.NodeID = pfcpType.NodeID{
+					NodeIdType:  pfcpType.NodeIdTypeIpv6Address,
+					NodeIdValue: ip,
+				}
+			default:
+				upNode.NodeID = pfcpType.NodeID{
+					NodeIdType:  pfcpType.NodeIdTypeFqdn,
+					NodeIdValue: []byte(node.NodeID),
+				}
+			}
+
+			upNode.UPF = smf_context.NewUPF(&upNode.NodeID, node.InterfaceUpfInfoList)
+			snssaiInfos := make([]smf_context.SnssaiUPFInfo, 0)
+			for _, snssaiInfoConfig := range node.SNssaiInfos {
+				snssaiInfo := smf_context.SnssaiUPFInfo{
+					SNssai: smf_context.SNssai{
+						Sst: snssaiInfoConfig.SNssai.Sst,
+						Sd:  snssaiInfoConfig.SNssai.Sd,
+					},
+					DnnList: make([]smf_context.DnnUPFInfoItem, 0),
+				}
+
+				for _, dnnInfoConfig := range snssaiInfoConfig.DnnUpfInfoList {
+					ueIPPools := make([]*smf_context.UeIPPool, 0)
+					for _, pool := range dnnInfoConfig.Pools {
+						ueIPPool := smf_context.NewUEIPPool(&pool)
+						if ueIPPool == nil {
+							logger.InitLog.Fatalf("invalid pools value: %+v", pool)
+						} else {
+							ueIPPools = append(ueIPPools, ueIPPool)
+							/* TODO: check overlapping cidrs*/
+							// allUEIPPools = append(allUEIPPools, ueIPPool)
+						}
+					}
+					snssaiInfo.DnnList = append(snssaiInfo.DnnList, smf_context.DnnUPFInfoItem{
+						Dnn:             dnnInfoConfig.Dnn,
+						DnaiList:        dnnInfoConfig.DnaiList,
+						PduSessionTypes: dnnInfoConfig.PduSessionTypes,
+						UeIPPools:       ueIPPools,
+					})
+				}
+				snssaiInfos = append(snssaiInfos, snssaiInfo)
+			}
+			upNode.UPF.SNssaiInfos = snssaiInfos
+			upi.UPFs[name] = upNode
+		default:
+			logger.InitLog.Warningf("invalid UPNodeType: %s\n", upNode.Type)
+		}
+
+		upi.UPNodes[name] = upNode
+
+		ipStr := upNode.NodeID.ResolveNodeIdToIp().String()
+		upi.UPFIPToName[ipStr] = name
+
+		// AllocateUPFID
+		upfid := upNode.UPF.UUID()
+		upfip := upNode.NodeID.ResolveNodeIdToIp().String()
+		upi.UPFsID[name] = upfid
+		upi.UPFsIPtoID[upfip] = upfid
+
+		// Association (asynch)
+		// TODO: should it be here?
+		upf := upNode.UPF
+		if upf.NodeID.NodeIdType == pfcpType.NodeIdTypeFqdn {
+			logger.AppLog.Infof("Send PFCP Association Request to UPF[%s](%s)\n", upf.NodeID.NodeIdValue,
+				upf.NodeID.ResolveNodeIdToIp().String())
+		} else {
+			logger.AppLog.Infof("Send PFCP Association Request to UPF[%s]\n", upf.NodeID.ResolveNodeIdToIp().String())
+		}
+		message.SendPfcpAssociationSetupRequest(upf.NodeID)
+	}
 }
-
-// Should conform factory.config.UPNode
-type UPNode struct {
-	Type                 string                 `json:"type"`
-	NodeID               string                 `json:"node_id"`
-	ANIP                 string                 `json:"an_ip"`
-	//SNssaiInfos          []SnssaiUpfInfoItem    `json:"sNssaiUpfInfos"`
-	InterfaceUpfInfoList []InterfaceUpfInfoItem `json:"interfaces"`
-
-//	User     string `form:"user" json:"user" binding:"required"`
-//	Password string `form:"password" json:"password" binding:"required"`
-}
-
-type InterfaceUpfInfoItem struct {
-//	InterfaceType   models.UpInterfaceType `json:"interfaceType"`
-	Endpoints       []string               `json:"endpoints"`
-	NetworkInstance string                 `json:"networkInstance"`
-}
-
-//type SnssaiUpfInfoItem struct {
-//	SNssai         *models.Snssai   `json:"sNssai"`
-//	DnnUpfInfoList []DnnUpfInfoItem `json:"dnnUpfInfoList"`
-//}
-//
-//type DnnUpfInfoItem struct {
-//	Dnn             string                  `json:"dnn"`
-//	DnaiList        []string                `json:"dnaiList"`
-//	PduSessionTypes []models.PduSessionType `json:"pduSessionTypes"`
-//	Pools           []UEIPPool              `json:"pools"`
-//}
 
 func PostUpiUPFs(c *gin.Context) {
 	logger.PduSessLog.Info("Recieve Add UPFs Request")
-	var json UserPlaneInformation
+	var json factory.UserPlaneInformation
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if json.UPNodes["UPF-T5"].InterfaceUpfInfoList[1].Endpoints[0] != "172.15.0.29" || json.UPNodes["UPF-T5"].NodeID != "upf-t5.free5gc.org" {
-		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"status": "you are logged in"})
+
+	logger.PduSessLog.Info("About to add UPFs")
+	AddUPFs(smf_context.SMF_Self().UserPlaneInformation, &json)
+
+	c.JSON(http.StatusOK, gin.H{"status": "OK"})
 }
