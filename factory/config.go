@@ -174,8 +174,8 @@ type DnnUpfInfoItem struct {
 }
 
 type UPLink struct {
-	A string `yaml:"A"`
-	B string `yaml:"B"`
+	A string `json:"A" yaml:"A"`
+	B string `json:"B" yaml:"B"`
 }
 
 type UEIPPool struct {

@@ -57,7 +57,7 @@ def links_post():
     value = getMessagePayload()
     global links
     links = value
-    return yaml.dump(links)
+    return flask.jsonify(links)
 
 
 @proxy.route("/links", methods=['GET'])
@@ -69,7 +69,7 @@ def links_get():
         response.status_code = 404
         return response
     else:
-        return yaml.dump(links)
+        return flask.jsonify(links)
 
 
 def main():

@@ -3,7 +3,7 @@ package context
 import (
 	"fmt"
 	"errors"
-	"gopkg.in/yaml.v2"
+	"encoding/json"
 	"github.com/free5gc/smf/factory"
 	"io/ioutil"
 	"net/http"
@@ -50,9 +50,9 @@ func DynamicLoadLinksGET(SUPI string) error {
 	logger.CtxLog.Infof("DynamicLoadLinksGET: resData = [%s]", string(resData))
 	// We fill into upi but only 'links' are currently applicable
 	SmfLinksConf := factory.UserPlaneInformation{}
-	if yamlErr := yaml.Unmarshal([]byte(resData), &SmfLinksConf); yamlErr != nil {
+	if jsonErr := json.Unmarshal([]byte(resData), &SmfLinksConf); jsonErr != nil {
 		// its from string type already
-		return yamlErr
+		return jsonErr
 	}
 
 	// Fill default topology into global SMF context
