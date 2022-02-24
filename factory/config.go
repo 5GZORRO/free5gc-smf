@@ -156,9 +156,9 @@ type UPNode struct {
 }
 
 type InterfaceUpfInfoItem struct {
-	InterfaceType   models.UpInterfaceType `json:"interfaceType yaml:"interfaceType"`
+	InterfaceType   models.UpInterfaceType `json:"interfaceType" yaml:"interfaceType"`
 	Endpoints       []string               `json:"endpoints" yaml:"endpoints"`
-	NetworkInstance string                 `json:"networkInstance yaml:"networkInstance"`
+	NetworkInstance string                 `json:"networkInstance" yaml:"networkInstance"`
 }
 
 type SnssaiUpfInfoItem struct {
