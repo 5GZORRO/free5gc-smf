@@ -22,6 +22,44 @@ proxy_server = None
 
 
 links = {}
+ueroutes = {
+    "ueRoutingInfo": {
+        "east": {
+            "members": [
+                'imsi-208930000000007'
+            ],
+            "topology": [
+                {"A": "gNB1", "B": "UPF-R1"},
+                {"A": "UPF-R1", "B": "UPF-T1"},
+                {"A": "UPF-T1", "B": "UPF-C1"}
+            ]
+        },
+        "west": {
+            "members": [
+                'imsi-208930000000001',
+                'imsi-208930000000003'
+            ],
+            "topology":[
+                {"A": "gNB1", "B": "UPF-R1"},
+                {"A": "UPF-R1", "B": "UPF-T2"},
+                {"A": "UPF-T2", "B": "UPF-C4"}
+            ]
+        },
+        "middle": {
+            "members": [
+                'imsi-208930000000004',
+                'imsi-208930000000005',
+                'imsi-208930000000002'
+            ],
+            "topology": [
+                {"A": "gNB1", "B": "UPF-R1"},
+                {"A": "UPF-R1", "B": "UPF-T2"},
+                {"A": "UPF-T2", "B": "UPF-C2"}
+            ]
+        }
+    }
+}
+
 
 
 def setServer(s):
@@ -70,6 +108,18 @@ def links_get():
         return response
     else:
         return flask.jsonify(links)
+
+
+@proxy.route("/ue-routes", methods=['GET'])
+def ueroutes_get():
+    sys.stdout.write ('Enter /ur-routes\n')
+    global ueroutes
+    if not ueroutes:
+        response = flask.jsonify({'NOT_FOUND': 404})
+        response.status_code = 404
+        return response
+    else:
+        return flask.jsonify(ueroutes)
 
 
 def main():

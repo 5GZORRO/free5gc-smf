@@ -133,10 +133,10 @@ type PfdDataForApp struct {
 }
 
 type RoutingConfig struct {
-	Info          *Info                        `yaml:"info"`
-	UERoutingInfo map[string]UERoutingInfo     `yaml:"ueRoutingInfo"`
-	RouteProf     map[RouteProfID]RouteProfile `yaml:"routeProfile,omitempty"`
-	PfdDatas      []*PfdDataForApp             `yaml:"pfdDataForApp,omitempty"`
+	Info          *Info                        `json:"info,omitempty" yaml:"info"`
+	UERoutingInfo map[string]UERoutingInfo     `json:"ueRoutingInfo" yaml:"ueRoutingInfo"`
+	RouteProf     map[RouteProfID]RouteProfile `json:"routeProfile,omitempty" yaml:"routeProfile,omitempty"`
+	PfdDatas      []*PfdDataForApp             `json:"pfdDataForApp,omitempty" yaml:"pfdDataForApp,omitempty"`
 }
 
 // UserPlaneInformation describe core network userplane information

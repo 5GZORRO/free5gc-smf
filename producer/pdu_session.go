@@ -60,6 +60,10 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 		logger.PduSessLog.Errorf("ERROR reloading links [%s] - using the the pre-existing ones..", err)
 	}
 
+	if err := smf_context.DynamicLoadUERoutesGET(); err != nil {
+		logger.PduSessLog.Errorf("ERROR reloading ueroutes [%s] - using the the pre-existing ones..", err)
+	}
+
 	// DNN Information from config
 	smContext.DNNInfo = smf_context.RetrieveDnnInformation(*createData.SNssai, createData.Dnn)
 	if smContext.DNNInfo == nil {
