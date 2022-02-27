@@ -23,6 +23,10 @@ proxy_server = None
 
 links = {}
 ueroutes = {
+    "info": {
+        "version": "1.0.1",
+        "description": "Routing information for UE"
+    },
     "ueRoutingInfo": {
         "east": {
             "members": [
@@ -32,6 +36,9 @@ ueroutes = {
                 {"A": "gNB1", "B": "UPF-R1"},
                 {"A": "UPF-R1", "B": "UPF-T1"},
                 {"A": "UPF-T1", "B": "UPF-C1"}
+            ],
+            "specificPath": [
+                {"dest": "60.61.0.0/16", "path": ["UPF-R1", "UPF-T1", "UPF-C1"]}
             ]
         },
         "west": {
@@ -43,6 +50,9 @@ ueroutes = {
                 {"A": "gNB1", "B": "UPF-R1"},
                 {"A": "UPF-R1", "B": "UPF-T2"},
                 {"A": "UPF-T2", "B": "UPF-C4"}
+            ],
+            "specificPath": [
+                {"dest": "60.64.0.0/16", "path": ["UPF-R1", "UPF-T2", "UPF-C4"]}
             ]
         },
         "middle": {
@@ -55,11 +65,13 @@ ueroutes = {
                 {"A": "gNB1", "B": "UPF-R1"},
                 {"A": "UPF-R1", "B": "UPF-T2"},
                 {"A": "UPF-T2", "B": "UPF-C2"}
+            ],
+            "specificPath": [
+                {"dest": "60.62.0.0/16", "path": ["UPF-R1", "UPF-T2", "UPF-C2"]}
             ]
         }
     }
 }
-
 
 
 def setServer(s):

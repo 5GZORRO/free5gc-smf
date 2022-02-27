@@ -23,8 +23,8 @@ type Config struct {
 }
 
 type Info struct {
-	Version     string `yaml:"version,omitempty"`
-	Description string `yaml:"description,omitempty"`
+	Version     string `json:"version,omitempty" yaml:"version,omitempty"`
+	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 }
 
 const (
@@ -92,10 +92,10 @@ type Path struct {
 }
 
 type UERoutingInfo struct {
-	Members       []string       `yaml:"members"`
-	AN            string         `yaml:"AN,omitempty"`
-	Topology      []UPLink       `yaml:"topology"`
-	SpecificPaths []SpecificPath `yaml:"specificPath,omitempty"`
+	Members       []string       `json:"members" yaml:"members"`
+	AN            string         `json:"AN,omitempty" yaml:"AN,omitempty"`
+	Topology      []UPLink       `json:"topology" yaml:"topology"`
+	SpecificPaths []SpecificPath `json:"specificPath,omitempty" yaml:"specificPath,omitempty"`
 }
 
 // RouteProfID is string providing a Route Profile identifier.
@@ -183,9 +183,9 @@ type UEIPPool struct {
 }
 
 type SpecificPath struct {
-	DestinationIP   string   `yaml:"dest,omitempty"`
-	DestinationPort string   `yaml:"DestinationPort,omitempty"`
-	Path            []string `yaml:"path"`
+	DestinationIP   string   `json:"dest,omitempty" yaml:"dest,omitempty"`
+	DestinationPort string   `json:"DestinationPort,omitempty" yaml:"DestinationPort,omitempty"`
+	Path            []string `json:"path" yaml:"path"`
 }
 
 type PLMNID struct {
