@@ -5,7 +5,6 @@ import (
 	"net"
 	"github.com/free5gc/smf/logger"
 	"github.com/gin-gonic/gin"
-	//"github.com/free5gc/openapi/models"
 	smf_context "github.com/free5gc/smf/context"
 	"github.com/free5gc/pfcp/pfcpType"
 	"github.com/free5gc/smf/pfcp/message"

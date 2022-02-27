@@ -57,7 +57,7 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	defer smContext.SMLock.Unlock()
 
 	if err := smf_context.DynamicLoadLinksGET(createData.Supi); err != nil {
-		logger.PduSessLog.Errorf("ERROR reloading links [%s] - using the the pre-loaded ones..", err)
+		logger.PduSessLog.Errorf("ERROR reloading links [%s] - using the the pre-existing ones..", err)
 	}
 
 	// DNN Information from config

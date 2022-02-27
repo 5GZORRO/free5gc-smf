@@ -246,9 +246,6 @@ func (smf *SMF) FilterCli(c *cli.Context) (args []string) {
 
 func (smf *SMF) Start() {
 	context.InitSmfContext(&factory.SmfConfig)
-
-//	context.DynamicLoad()
-//	fmt.Println("[WEIT] Start: UPFIPToName [%s]", context.SMF_Self().UserPlaneInformation.UPFIPToName)
 	// allocate id for each upf
 	context.AllocateUPFID()
 	context.InitSMFUERouting(&factory.UERoutingConfig)
