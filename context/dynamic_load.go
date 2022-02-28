@@ -75,7 +75,6 @@ func DynamicLoadLinksGET(SUPI string) error {
 	if err != nil {
 		return errors.New(err.Error())
 	}
-	logger.CtxLog.Infof("DynamicLoadLinksGET: resData = [%s]", string(resData))
 	// We fill into upi but only 'links' are currently applicable
 	SmfLinksConf := factory.UserPlaneInformation{}
 	if jsonErr := json.Unmarshal([]byte(resData), &SmfLinksConf); jsonErr != nil {
@@ -94,7 +93,6 @@ func DynamicLoadUERoutesGET() error {
 	if err != nil {
 		return errors.New(err.Error())
 	}
-	logger.CtxLog.Infof("DynamicLoadUERoutesGET: resData = [%s]", string(resData))
 	SmfRoutingConf := factory.RoutingConfig{}
 	if jsonErr := json.Unmarshal([]byte(resData), &SmfRoutingConf); jsonErr != nil {
 		// its from string type already
