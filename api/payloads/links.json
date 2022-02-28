@@ -1,0 +1,7 @@
+{
+    "links": [
+        {"A": "gNB1", "B": "UPF-R1"},
+        {"A": "UPF-R1", "B": "UPF-T1"},
+        {"A": "UPF-T1", "B": "UPF-C1"}
+    ]
+}

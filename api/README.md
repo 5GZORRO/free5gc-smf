@@ -9,16 +9,67 @@ docker run -p 30000:8080 smf-api
 
 ## API
 
-### Update links
+### Update default topology
+
+Create or update default topology
 
 ```
-curl -H "Content-type: application/json" -X POST -d "@payloads/links1.json" http://172.15.0.211:30000/links
+curl -H "Content-type: application/json" -X POST http://smf_api_address:30000/links
 ```
 
-### Get links
+REST path:
 
 ```
-curl -H "Content-type: application/json" -X GET http://172.15.0.211:30000/links
+    smf_api_ip_address - ipaddress SMF API service
+```
+
+Return:
+
+```
+    status - 200
+```
+
+Invocation example:
+
+```bash
+    curl -H "Content-type: application/json" -X POST -d "@payloads/links.json" http://172.15.0.211:30000/links
+```
+
+### Get default topology
+
+Get default topology
+
+```
+curl -H "Content-type: application/json" -X GET http://smf_api_address:30000/links
+```
+
+REST path:
+
+```
+    smf_api_ip_address - ipaddress SMF API service
+```
+
+Invocation example:
+
+```bash
+    curl -H "Content-type: application/json" -X GET http://172.15.0.211:30000/links
+
+    {
+      "links": [
+        {
+          "A": "gNB1",
+          "B": "UPF-R1"
+        },
+        {
+          "A": "UPF-R1",
+          "B": "UPF-T1"
+        },
+        {
+          "A": "UPF-T1",
+          "B": "UPF-C1"
+        }
+      ]
+    }
 ```
 
 
@@ -45,7 +96,7 @@ Return:
 
 Invocation example:
 
-```
+```bash
     curl -H "Content-type: application/json" -X POST http://smf_api_address:30000/ue-routes/east
 ```
 
@@ -73,10 +124,38 @@ Return:
 
 Invocation example:
 
-```
-    curl H "Content-type: application/json" -X GET http://172.15.0.211:30000/ue-routes/east
+```bash
+    curl -H "Content-type: application/json" -X GET http://172.15.0.211:30000/ue-routes/east
 
-    <TODO>
+    {
+      "members": [
+        "imsi-208930000000001"
+      ],
+      "specificPath": [
+        {
+          "dest": "60.61.0.0/16",
+          "path": [
+            "UPF-R1",
+            "UPF-T1",
+            "UPF-C1"
+          ]
+        }
+      ],
+      "topology": [
+        {
+          "A": "gNB1",
+          "B": "UPF-R1"
+        },
+        {
+          "A": "UPF-R1",
+          "B": "UPF-T1"
+        },
+        {
+          "A": "UPF-T1",
+          "B": "UPF-C1"
+        }
+      ]
+    }
 ```
 
 
@@ -104,7 +183,7 @@ Return:
 
 Invocation example:
 
-```
+```bash
     curl -H "Content-type: application/json" -X POST http://172.15.0.211:30000/ue-routes/east/members/imsi-208930000000007
 ```
 
@@ -133,8 +212,8 @@ Return:
 
 Invocation example:
 
-```
-    curl H "Content-type: application/json" -X GET http://172.15.0.211:30000/ue-routes/east/members
+```bash
+    curl -H "Content-type: application/json" -X GET http://172.15.0.211:30000/ue-routes/east/members
 
     [
       "imsi-208930000000001",
@@ -149,7 +228,7 @@ Invocation example:
 
 Add topology for a given group
 
-**Important:** it is mandatory for the UPFs to be pre-registered in SMF
+**Important:** it is mandatory for the UPFs to be pre-registered in SMF (see: [here](https://github.ibm.com/WEIT/free5gc-compose/blob/e0d4742-dynamic_load/config/smf/README.md))
 
 ```
 curl -H "Content-type: application/json" -X POST http://smf_api_address:30000/ue-routes/<group_name>/topology
@@ -188,6 +267,6 @@ curl -X POST \
 
 Alternatively - pass json file
 
-```
+```bash
     curl -H "Content-type: application/json" -X POST -d "@payloads/east-topology.json" http://172.15.0.211:30000/ue-routes/east/topology
 ```
