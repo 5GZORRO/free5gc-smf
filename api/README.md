@@ -97,7 +97,7 @@ Return:
 Invocation example:
 
 ```bash
-    curl -H "Content-type: application/json" -X POST http://smf_api_address:30000/ue-routes/east
+    curl -H "Content-type: application/json" -X POST http://smf_api_address:30000/ue-routes/red
 ```
 
 ### Get group info
@@ -125,7 +125,7 @@ Return:
 Invocation example:
 
 ```bash
-    curl -H "Content-type: application/json" -X GET http://172.15.0.211:30000/ue-routes/east
+    curl -H "Content-type: application/json" -X GET http://172.15.0.211:30000/ue-routes/red
 
     {
       "members": [
@@ -184,7 +184,7 @@ Return:
 Invocation example:
 
 ```bash
-    curl -H "Content-type: application/json" -X POST http://172.15.0.211:30000/ue-routes/east/members/imsi-208930000000007
+    curl -H "Content-type: application/json" -X POST http://172.15.0.211:30000/ue-routes/red/members/imsi-208930000000007
 ```
 
 
@@ -213,7 +213,7 @@ Return:
 Invocation example:
 
 ```bash
-    curl -H "Content-type: application/json" -X GET http://172.15.0.211:30000/ue-routes/east/members
+    curl -H "Content-type: application/json" -X GET http://172.15.0.211:30000/ue-routes/red/members
 
     [
       "imsi-208930000000001",
@@ -251,7 +251,7 @@ Invocation example:
 
 ```bash
 curl -X POST \
-  http://172.15.0.211:30000/ue-routes/east/topology \
+  http://172.15.0.211:30000/ue-routes/red/topology \
   -H 'content-type: application/json' \
   -d '{
   "topology": [
@@ -268,5 +268,5 @@ curl -X POST \
 Alternatively - pass json file
 
 ```bash
-    curl -H "Content-type: application/json" -X POST -d "@payloads/east-topology.json" http://172.15.0.211:30000/ue-routes/east/topology
+    curl -H "Content-type: application/json" -X POST -d "@payloads/red-topology.json" http://172.15.0.211:30000/ue-routes/red/topology
 ```
