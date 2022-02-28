@@ -221,7 +221,7 @@ def ueroutes_member_get(group_name):
 @proxy.route('/ue-routes/<group_name>/topology', methods=['POST'])
 def ueroutes_topology_create(group_name):
     try:
-        value = getMessagePayload()
+        values = getMessagePayload()
 
         global ueroutes
         ueroutes['ueRoutingInfo'][group_name].update(values)
@@ -243,8 +243,9 @@ def ueroutes_topology_create(group_name):
 @proxy.route('/ue-routes/<group_name>/topology', methods=['GET'])
 def ueroutes_topology_get(group_name):
     try:
-        values = ueroutes['ueRoutingInfo'][group_name]['topology']
-        response = flask.jsonify(values)
+        values_t = ueroutes['ueRoutingInfo'][group_name]['topology']
+        values_s = ueroutes['ueRoutingInfo'][group_name]['specificPath']
+        response = flask.jsonify(dict(topology=values_t, specificPath=values_s))
         response.status_code = 200
 
     except KeyError as e:

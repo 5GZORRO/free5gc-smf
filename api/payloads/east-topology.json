@@ -1,0 +1,10 @@
+{
+  "topology": [
+    {"A": "gNB1", "B": "UPF-R1"},
+    {"A": "UPF-R1", "B": "UPF-T1"},
+    {"A": "UPF-T1", "B": "UPF-C1"}
+  ],
+  "specificPath": [
+    {"dest": "60.61.0.0/16", "path": ["UPF-R1", "UPF-T1", "UPF-C1"]}
+  ]
+}
