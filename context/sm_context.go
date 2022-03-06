@@ -118,6 +118,10 @@ type SMContext struct {
 
 	// lock
 	SMLock sync.Mutex
+
+	ULCLGroups          map[string][]string
+	UEPreConfigPathPool map[string]*UEPreConfigPaths
+	UEDefaultPathPool   map[string]*UEDefaultPaths
 }
 
 func canonicalName(identifier string, pduSessID int32) (canonical string) {
@@ -214,6 +218,49 @@ func (smContext *SMContext) SetCreateData(createData *models.SmContextCreateData
 	smContext.OldPduSessionId = createData.OldPduSessionId
 	smContext.ServingNfId = createData.ServingNfId
 }
+
+func (smContext *SMContext) GetULCLGroupNameFromSUPI(SUPI string) string {
+	ulclGroups := smContext.ULCLGroups
+	for name, group := range ulclGroups {
+		for _, member := range group {
+			if member == SUPI {
+				return name
+			}
+		}
+	}
+	return ""
+}
+
+func (smContext *SMContext) GetUEDefaultPathPool(groupName string) *UEDefaultPaths {
+	return smContext.UEDefaultPathPool[groupName]
+}
+
+func (smContext *SMContext) GetUEPreConfigPaths(SUPI string, upfName string) *UEPreConfigPaths {
+	groupName := smContext.GetULCLGroupNameFromSUPI(SUPI)
+	if groupName == "" {
+		return nil
+	}
+	dataPathPool := NewDataPathPool()
+	dataPathPool[1] = smContext.UEDefaultPathPool[groupName].GetDefaultPath(upfName)
+	var i int64 = 2
+	for _, dataPath := range smContext.UEPreConfigPathPool[groupName].DataPathPool {
+		firstNode := dataPath.CopyFirstDPNode()
+		path := &DataPath{
+			Activated:     false,
+			IsDefaultPath: false,
+			Destination:   dataPath.Destination,
+			FirstDPNode:   firstNode,
+		}
+		dataPathPool[i] = path
+		i++
+	}
+	paths := &UEPreConfigPaths{
+		DataPathPool:    dataPathPool,
+		PathIDGenerator: smContext.UEPreConfigPathPool[groupName].PathIDGenerator,
+	}
+	return paths
+}
+
 
 func (smContext *SMContext) BuildCreatedData() (createdData *models.SmContextCreatedData) {
 	createdData = new(models.SmContextCreatedData)

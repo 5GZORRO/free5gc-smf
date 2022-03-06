@@ -87,7 +87,7 @@ func DynamicLoadLinksGET(SUPI string) error {
 	return nil
 }
 
-func DynamicLoadUERoutesGET() error {
+func DynamicLoadUERoutesGET(smContext *SMContext) error {
 	logger.CtxLog.Infof("DynamicLoadUERoutesGET")
 	resData, err := ReadUERoutesFromService()
 	if err != nil {
@@ -100,6 +100,31 @@ func DynamicLoadUERoutesGET() error {
 	}
 
 	// Fill default topology into global SMF context
-	InitSMFUERouting(&SmfRoutingConf)
+	InitSMFUERoutingInContext(smContext, &SmfRoutingConf)
 	return nil
+}
+
+func InitSMFUERoutingInContext(smContext *SMContext, routingConfig *factory.RoutingConfig){
+
+	UERoutingInfo := routingConfig.UERoutingInfo
+	smContext.UEPreConfigPathPool = make(map[string]*UEPreConfigPaths)
+	smContext.UEDefaultPathPool = make(map[string]*UEDefaultPaths)
+	smContext.ULCLGroups = make(map[string][]string)
+
+	for groupName, routingInfo := range UERoutingInfo {
+		logger.CtxLog.Debugln("Set context for ULCL group: ", groupName)
+		smContext.ULCLGroups[groupName] = routingInfo.Members
+		uePreConfigPaths, err := NewUEPreConfigPaths(routingInfo.SpecificPaths)
+		if err != nil {
+			logger.CtxLog.Warnln(err)
+		} else {
+			smContext.UEPreConfigPathPool[groupName] = uePreConfigPaths
+		}
+		ueDefaultPaths, err := NewUEDefaultPaths(smfContext.UserPlaneInformation, routingInfo.Topology)
+		if err != nil {
+			logger.CtxLog.Warnln(err)
+		} else {
+			smContext.UEDefaultPathPool[groupName] = ueDefaultPaths
+		}
+	}
 }
