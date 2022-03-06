@@ -100,14 +100,21 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 		if !DynamicLoadUERoutesGETFail {
 			groupName := smContext.GetULCLGroupNameFromSUPI(createData.Supi)
 			defaultPathPool := smContext.GetUEDefaultPathPool(groupName)
+
+			if defaultPathPool != nil {
+				selectedUPFName, ip = defaultPathPool.SelectUPFAndAllocUEIPForULCL(
+					smf_context.GetUserPlaneInformation(), upfSelectionParams)
+				selectedUPF = smf_context.GetUserPlaneInformation().UPFs[selectedUPFName]
+			}
 		} else {
-		groupName := smf_context.GetULCLGroupNameFromSUPI(createData.Supi)
-		defaultPathPool := smf_context.GetUEDefaultPathPool(groupName)
-		}
-		if defaultPathPool != nil {
-			selectedUPFName, ip = defaultPathPool.SelectUPFAndAllocUEIPForULCL(
-				smf_context.GetUserPlaneInformation(), upfSelectionParams)
-			selectedUPF = smf_context.GetUserPlaneInformation().UPFs[selectedUPFName]
+			groupName := smf_context.GetULCLGroupNameFromSUPI(createData.Supi)
+			defaultPathPool := smf_context.GetUEDefaultPathPool(groupName)
+
+			if defaultPathPool != nil {
+				selectedUPFName, ip = defaultPathPool.SelectUPFAndAllocUEIPForULCL(
+					smf_context.GetUserPlaneInformation(), upfSelectionParams)
+				selectedUPF = smf_context.GetUserPlaneInformation().UPFs[selectedUPFName]
+			}
 		}
 	} else {
 		selectedUPF, ip = smf_context.GetUserPlaneInformation().SelectUPFAndAllocUEIP(upfSelectionParams)
@@ -195,11 +202,15 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 		logger.PduSessLog.Infof("DynamicLoadUERoutesGETFail [%s]", DynamicLoadUERoutesGETFail)
 		if !DynamicLoadUERoutesGETFail {
 			uePreConfigPaths := smContext.GetUEPreConfigPaths(createData.Supi, selectedUPFName)
+			smContext.Tunnel.DataPathPool = uePreConfigPaths.DataPathPool
+			smContext.Tunnel.PathIDGenerator = uePreConfigPaths.PathIDGenerator
+
 		} else {
 			uePreConfigPaths := smf_context.GetUEPreConfigPaths(createData.Supi, selectedUPFName)
+			smContext.Tunnel.DataPathPool = uePreConfigPaths.DataPathPool
+			smContext.Tunnel.PathIDGenerator = uePreConfigPaths.PathIDGenerator
+
 		}
-		smContext.Tunnel.DataPathPool = uePreConfigPaths.DataPathPool
-		smContext.Tunnel.PathIDGenerator = uePreConfigPaths.PathIDGenerator
 		defaultPath = smContext.Tunnel.DataPathPool.GetDefaultPath()
 		defaultPath.ActivateTunnelAndPDR(smContext, 255)
 		smContext.BPManager = smf_context.NewBPManager(createData.Supi)
