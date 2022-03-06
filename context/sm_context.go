@@ -261,6 +261,15 @@ func (smContext *SMContext) GetUEPreConfigPaths(SUPI string, upfName string) *UE
 	return paths
 }
 
+func (smContext *SMContext) CheckUEHasPreConfig(SUPI string) (exist bool) {
+	groupName := smContext.GetULCLGroupNameFromSUPI(SUPI)
+	logger.CtxLog.Tracef("UE [%s] belongs to group [%s]", SUPI, groupName)
+	if groupName == "" {
+		return false
+	}
+	_, exist = smContext.UEPreConfigPathPool[groupName]
+	return
+}
 
 func (smContext *SMContext) BuildCreatedData() (createdData *models.SmContextCreatedData) {
 	createdData = new(models.SmContextCreatedData)

@@ -61,6 +61,7 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	}
 
 	var DynamicLoadUERoutesGETFail bool
+	// var UEHasPreConfig bool
 
 	DynamicLoadUERoutesGETFail = false
 	if err := smf_context.DynamicLoadUERoutesGET(smContext); err != nil {
@@ -95,7 +96,13 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	var selectedUPF *smf_context.UPNode
 	var ip net.IP
 	selectedUPFName := ""
-	if smf_context.SMF_Self().ULCLSupport && smf_context.CheckUEHasPreConfig(createData.Supi) {
+	UEHasPreConfig := false
+	if !DynamicLoadUERoutesGETFail {
+		UEHasPreConfig = smContext.CheckUEHasPreConfig(createData.Supi)
+	} else {
+		UEHasPreConfig = smf_context.CheckUEHasPreConfig(createData.Supi)
+	}
+	if smf_context.SMF_Self().ULCLSupport && UEHasPreConfig {
 		logger.PduSessLog.Infof("DynamicLoadUERoutesGETFail [%s]", DynamicLoadUERoutesGETFail)
 		if !DynamicLoadUERoutesGETFail {
 			groupName := smContext.GetULCLGroupNameFromSUPI(createData.Supi)
@@ -197,7 +204,7 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	}
 	var defaultPath *smf_context.DataPath
 
-	if smf_context.SMF_Self().ULCLSupport && smf_context.CheckUEHasPreConfig(createData.Supi) {
+	if smf_context.SMF_Self().ULCLSupport && UEHasPreConfig {
 		logger.PduSessLog.Infof("SUPI[%s] has pre-config route", createData.Supi)
 		logger.PduSessLog.Infof("DynamicLoadUERoutesGETFail [%s]", DynamicLoadUERoutesGETFail)
 		if !DynamicLoadUERoutesGETFail {
