@@ -15,7 +15,8 @@ import (
 
 func ReadFromService(SUPI string) ([]byte, error) {
 	os.Setenv("GODEBUG", "http2client=0")
-	req, err1 := http.NewRequest("GET", "http://172.15.0.211:30000/links", nil)
+	finalUri := fmt.Sprintf("%s/%s", SMF_Self().SmfExtfUri, "links")
+	req, err1 := http.NewRequest("GET", finalUri, nil)
 	if err1 != nil {
 		logger.CtxLog.Errorf(err1.Error())
 		return nil, errors.New(err1.Error())
@@ -43,7 +44,8 @@ func ReadFromService(SUPI string) ([]byte, error) {
 
 func ReadUERoutesFromService() ([]byte, error) {
 	os.Setenv("GODEBUG", "http2client=0")
-	req, err1 := http.NewRequest("GET", "http://172.15.0.211:30000/ue-routes", nil)
+	finalUri := fmt.Sprintf("%s/%s", SMF_Self().SmfExtfUri, "ue-routes")
+	req, err1 := http.NewRequest("GET", finalUri, nil)
 	if err1 != nil {
 		logger.CtxLog.Errorf(err1.Error())
 		return nil, errors.New(err1.Error())

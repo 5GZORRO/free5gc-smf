@@ -44,6 +44,7 @@ type SMFContext struct {
 	SnssaiInfos []SnssaiSmfInfo
 
 	NrfUri                         string
+	SmfExtUri                      string
 	NFManagementClient             *Nnrf_NFManagement.APIClient
 	NFDiscoveryClient              *Nnrf_NFDiscovery.APIClient
 	SubscriberDataManagementClient *Nudm_SubscriberDataManagement.APIClient
@@ -128,6 +129,13 @@ func InitSmfContext(config *factory.Config) {
 		logger.CtxLog.Warn("NRF Uri is empty! Using localhost as NRF IPv4 address.")
 		smfContext.NrfUri = fmt.Sprintf("%s://%s:%d", smfContext.URIScheme, "127.0.0.1", 29510)
 	}
+	if configuration.SmfExtUri != "" {
+		smfContext.SmfExtUri = configuration.SmfExtUri
+	} else {
+		logger.CtxLog.Warn("SmfExt Uri is empty! Using localhost as SmfExt IPv4 address.")
+		smfContext.SmfExtUri = fmt.Sprintf("%s://%s:%d", smfContext.URIScheme, "127.0.0.1", 8080)
+	}
+
 
 	if pfcp := configuration.PFCP; pfcp != nil {
 		if pfcp.Port == 0 {
