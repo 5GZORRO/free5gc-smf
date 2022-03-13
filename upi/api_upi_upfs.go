@@ -13,6 +13,11 @@ import (
 
 func AddUPFs(upi *smf_context.UserPlaneInformation, upTopology *factory.UserPlaneInformation) {
 	for name, node := range upTopology.UPNodes {
+		if _, ok := upi.UPNodes[name]; ok {
+			// TODO: consider it as an error?
+		    logger.InitLog.Warningf("UPF [%s] already exists in SMF. Ignoring request.\n", name)
+		    continue
+		}
 		upNode := new(smf_context.UPNode)
 		upNode.Type = smf_context.UPNodeType(node.Type)
 		switch upNode.Type {
