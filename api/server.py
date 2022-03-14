@@ -193,6 +193,46 @@ def ueroutes_topology_create(group_name):
     return response
 
 
+@proxy.route('/ue-routes/<group_name>/topology', methods=['PUT'])
+def ueroutes_topology_add_link(group_name):
+    """
+    Add a link to given group's topology. Note: group entry is created
+    if does not exist
+
+    :param A: from node name
+    :type A: ``str``
+
+    :param B: to node name
+    :type B: ``str``
+
+    :param group_name: the name of the group
+    :type group_name: ``str``
+    """
+    try:
+        values = getMessagePayload()
+
+        global ueroutes
+
+        ls = ueroutes['ueRoutingInfo'].setdefault(group_name, {}).setdefault('topology', [])
+        #ls = ueroutes['ueRoutingInfo'][group_name]['topology']
+
+        ls.append(values)
+
+        print(ueroutes)
+        return ('OK', 200)
+ 
+    except KeyError as e:
+        response = flask.jsonify({'error missing key': '%s' % str(e)})
+        response.status_code = 404
+
+    except Exception as e:
+        response = flask.jsonify({'error': '%s' % str(e)})
+        response.status_code = 500
+
+    print(response)
+    return response
+
+
 @proxy.route('/ue-routes/<group_name>/topology', methods=['GET'])
 def ueroutes_topology_get(group_name):
     try:
