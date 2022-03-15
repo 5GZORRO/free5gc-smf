@@ -1,11 +1,11 @@
-# SMF-api
+# SMF-ext
+
+This is SMF extension service. The purpose of this service is to provide specific data paths for SMF to create
+the PDU sessions on.
 
 ## Deploy the service
 
-```
-docker build --tag smf-api --force-rm=true .
-docker run -p 30000:8080 smf-api
-```
+The service is deployed jointly with smf. Refer to free5gc [docker-compose](https://github.ibm.com/WEIT/free5gc-compose/tree/e0d4742-dynamic_load) setup
 
 ## API
 
@@ -14,7 +14,7 @@ docker run -p 30000:8080 smf-api
 Create or update default topology
 
 ```
-curl -H "Content-type: application/json" -X POST http://smf_api_address:30000/links
+curl -H "Content-type: application/json" -X POST http://smf_api_address:38080/links
 ```
 
 REST path:
@@ -32,7 +32,7 @@ Return:
 Invocation example:
 
 ```bash
-    curl -H "Content-type: application/json" -X POST -d "@payloads/links.json" http://172.15.0.211:30000/links
+    curl -H "Content-type: application/json" -X POST -d "@payloads/links.json" http://127.0.0.1:38080/links
 ```
 
 ### Get default topology
@@ -40,7 +40,7 @@ Invocation example:
 Get default topology
 
 ```
-curl -H "Content-type: application/json" -X GET http://smf_api_address:30000/links
+curl -H "Content-type: application/json" -X GET http://smf_api_address:38080/links
 ```
 
 REST path:
@@ -52,7 +52,7 @@ REST path:
 Invocation example:
 
 ```bash
-    curl -H "Content-type: application/json" -X GET http://172.15.0.211:30000/links
+    curl -H "Content-type: application/json" -X GET http://127.0.0.1:38080/links
 
     {
       "links": [
@@ -78,7 +78,7 @@ Invocation example:
 Create a group
 
 ```
-curl -H "Content-type: application/json" -X POST http://smf_api_address:30000/ue-routes/<group_name>
+curl -H "Content-type: application/json" -X POST http://smf_api_address:38080/ue-routes/<group_name>
 ```
 
 REST path:
@@ -97,7 +97,7 @@ Return:
 Invocation example:
 
 ```bash
-    curl -H "Content-type: application/json" -X POST http://smf_api_address:30000/ue-routes/red
+    curl -H "Content-type: application/json" -X POST http://smf_api_address:38080/ue-routes/red
 ```
 
 ### Get group info
@@ -105,7 +105,7 @@ Invocation example:
 Returns information for the given group
 
 ```
-curl -H "Content-type: application/json" -GET http://smf_api_address:30000/ue-routes/<group_name>
+curl -H "Content-type: application/json" -GET http://smf_api_address:38080/ue-routes/<group_name>
 ```
 
 REST path:
@@ -125,11 +125,11 @@ Return:
 Invocation example:
 
 ```bash
-    curl -H "Content-type: application/json" -X GET http://172.15.0.211:30000/ue-routes/red
+    curl -H "Content-type: application/json" -X GET http://127.0.0.1:38080/ue-routes/red
 
     {
       "members": [
-        "imsi-208930000000001"
+        "imsi-208938080000001"
       ],
       "specificPath": [
         {
@@ -164,7 +164,7 @@ Invocation example:
 Add a member to a given group
 
 ```
-curl -H "Content-type: application/json" -X POST http://smf_api_address:30000/ue-routes/<group_name>/members/<member_name>
+curl -H "Content-type: application/json" -X POST http://smf_api_address:38080/ue-routes/<group_name>/members/<member_name>
 ```
 
 REST path:
@@ -184,7 +184,7 @@ Return:
 Invocation example:
 
 ```bash
-    curl -H "Content-type: application/json" -X POST http://172.15.0.211:30000/ue-routes/red/members/imsi-208930000000007
+    curl -H "Content-type: application/json" -X POST http://127.0.0.1:38080/ue-routes/red/members/imsi-208938080000007
 ```
 
 
@@ -193,7 +193,7 @@ Invocation example:
 Returns members for the given group
 
 ```
-curl -H "Content-type: application/json" -GET http://smf_api_address:30000/ue-routes/<group_name>/members
+curl -H "Content-type: application/json" -GET http://smf_api_address:38080/ue-routes/<group_name>/members
 ```
 
 REST path:
@@ -213,13 +213,13 @@ Return:
 Invocation example:
 
 ```bash
-    curl -H "Content-type: application/json" -X GET http://172.15.0.211:30000/ue-routes/red/members
+    curl -H "Content-type: application/json" -X GET http://127.0.0.1:38080/ue-routes/red/members
 
     [
-      "imsi-208930000000001",
-      "imsi-208930000000004",
-      "imsi-208930000000007",
-      "imsi-208930000000008"
+      "imsi-208938080000001",
+      "imsi-208938080000004",
+      "imsi-208938080000007",
+      "imsi-208938080000008"
     ]
 ```
 
@@ -231,7 +231,7 @@ Add topology for a given group
 **Important:** it is mandatory for the UPFs to be pre-registered in SMF (see: [here](https://github.ibm.com/WEIT/free5gc-compose/blob/e0d4742-dynamic_load/config/smf/README.md))
 
 ```
-curl -H "Content-type: application/json" -X POST http://smf_api_address:30000/ue-routes/<group_name>/topology
+curl -H "Content-type: application/json" -X POST http://smf_api_address:38080/ue-routes/<group_name>/topology
 ```
 
 REST path:
@@ -251,7 +251,7 @@ Invocation example:
 
 ```bash
 curl -X POST \
-  http://172.15.0.211:30000/ue-routes/red/topology \
+  http://127.0.0.1:38080/ue-routes/red/topology \
   -H 'content-type: application/json' \
   -d '{
   "topology": [
@@ -268,5 +268,53 @@ curl -X POST \
 Alternatively - pass json file
 
 ```bash
-    curl -H "Content-type: application/json" -X POST -d "@payloads/red-topology.json" http://172.15.0.211:30000/ue-routes/red/topology
+    curl -H "Content-type: application/json" -X POST -d "@payloads/red-topology.json" http://127.0.0.1:38080/ue-routes/red/topology
+```
+
+
+### Update topology with link
+
+Update topology entry with the provided link. Note: group entry is created if does not exist
+
+```
+curl -H "Content-type: application/json" -X POST http://smf_api_address:38080/ue-routes/<group_name>/topology
+```
+
+REST path:
+
+```
+    smf_api_ip_address - ipaddress SMF API service
+    group_name         - the name of the group (str)
+```
+
+Return:
+
+```
+    status - 200
+```
+
+Invocation examples:
+
+define path: gNB1 -> UPF-R1 -> UPF-T1 -> UPF-C2
+
+```bash
+curl -X PUT \
+  http://127.0.0.1:38080/ue-routes/red/topology \
+  -H 'content-type: application/json' \
+  -d '{"A": "gNB1", "B": "UPF-R1"}}'
+```
+
+
+```bash
+curl -X PUT \
+  http://127.0.0.1:38080/ue-routes/red/topology \
+  -H 'content-type: application/json' \
+  -d '{"A": "UPF-R1", "B": "UPF-T1"}}'
+```
+
+```bash
+curl -X PUT \
+  http://127.0.0.1:38080/ue-routes/red/topology \
+  -H 'content-type: application/json' \
+  -d '{"A": "UPF-T1", "B": "UPF-C2"}}'
 ```

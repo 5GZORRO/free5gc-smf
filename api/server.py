@@ -214,13 +214,23 @@ def ueroutes_topology_add_link(group_name):
         global ueroutes
 
         ls = ueroutes['ueRoutingInfo'].setdefault(group_name, {}).setdefault('topology', [])
-        #ls = ueroutes['ueRoutingInfo'][group_name]['topology']
-
         ls.append(values)
+
+        sp = ueroutes['ueRoutingInfo'][group_name].get('specificPath', [])
+        # TODO: revise this. for now we assume that B is always upf hence setting
+        # sp with it
+        if len(sp) == 0:
+            sp.append(
+                dict(
+                    # dummy subnet..
+                    dest='10.10.10.0/24',
+                    path=[values['B']])
+                )
+            ueroutes['ueRoutingInfo'][group_name]['specificPath'] = sp
 
         print(ueroutes)
         return ('OK', 200)
- 
+
     except KeyError as e:
         response = flask.jsonify({'error missing key': '%s' % str(e)})
         response.status_code = 404
