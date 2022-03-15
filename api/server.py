@@ -129,7 +129,7 @@ def ueroutes_group_get(group_name):
 def ueroutes_member_create(group_name, member_name):
     try:
         global ueroutes
-        members = ueroutes['ueRoutingInfo'][group_name].get('members', [])
+        members = ueroutes['ueRoutingInfo'].setdefault(group_name, {}).get('members', [])
         if member_name in members:
             response = flask.jsonify(
                 {'error': 'member "%s" exists in group "%s"' % (member_name, group_name)})
@@ -177,7 +177,7 @@ def ueroutes_topology_create(group_name):
         values = getMessagePayload()
 
         global ueroutes
-        ueroutes['ueRoutingInfo'][group_name].update(values)
+        ueroutes['ueRoutingInfo'].setdefault(group_name, {}).update(values)
         print(ueroutes)
         return ('OK', 200)
  
