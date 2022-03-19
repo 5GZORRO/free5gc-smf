@@ -29,22 +29,36 @@ func GetUpi(c *gin.Context) {
 				}
 
 				nodeIDtoIp := upNode.NodeID.ResolveNodeIdToIp()
+				// for AN nodeIDtoIp is nil
 				if nodeIDtoIp != nil {
 					u.NodeID = nodeIDtoIp.String()
 				}
+				// for AN UPF is nil
 				if upNode.UPF != nil {
 					if upNode.UPF.SNssaiInfos != nil {
-						sNssaiInfos := make([]factory.SnssaiUpfInfoItem, 0)
+						FsNssaiInfoList := make([]factory.SnssaiUpfInfoItem, 0)
 						for _, sNssaiInfo := range upNode.UPF.SNssaiInfos {
-							snssai := factory.SnssaiUpfInfoItem {
+							FDnnUpfInfoList := make([]factory.DnnUpfInfoItem, 0)
+							for _, dnnInfo := range sNssaiInfo.DnnList {
+								//FUEIPPools := make([]factory.UEIPPool, 0)
+								//for _, _ := range dnnInfo.UeIPPools {
+									//FUEIPPools = append(FUEIPPools, pool.ueSubNet.String())
+								//} // for pool
+								FDnnUpfInfoList = append(FDnnUpfInfoList, factory.DnnUpfInfoItem{
+									Dnn: dnnInfo.Dnn,
+									//Pools: FUEIPPools,
+								})
+							} // for dnnInfo
+							Fsnssai := factory.SnssaiUpfInfoItem {
 								SNssai: &models.Snssai{
 									Sst: sNssaiInfo.SNssai.Sst,
 									Sd: sNssaiInfo.SNssai.Sd,
 								},
+								DnnUpfInfoList: FDnnUpfInfoList,
 							 }
-							sNssaiInfos = append(sNssaiInfos, snssai)
-						}
-						u.SNssaiInfos = sNssaiInfos
+							FsNssaiInfoList = append(FsNssaiInfoList, Fsnssai)
+						} // for sNssaiInfo
+						u.SNssaiInfos = FsNssaiInfoList
 					}
 				}
 				nodes[name] = *u
