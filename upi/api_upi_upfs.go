@@ -10,6 +10,7 @@ import (
 	"github.com/free5gc/pfcp/pfcpType"
 	"github.com/free5gc/smf/pfcp/message"
 	"github.com/free5gc/smf/factory"
+	"github.com/free5gc/openapi/models"
 )
 
 func GetUpi(c *gin.Context) {
@@ -31,17 +32,27 @@ func GetUpi(c *gin.Context) {
 				if nodeIDtoIp != nil {
 					u.NodeID = nodeIDtoIp.String()
 				}
-
+				if upNode.UPF != nil {
+					if upNode.UPF.SNssaiInfos != nil {
+						sNssaiInfos := make([]factory.SnssaiUpfInfoItem, 0)
+						for _, sNssaiInfo := range upNode.UPF.SNssaiInfos {
+							snssai := factory.SnssaiUpfInfoItem {
+								SNssai: &models.Snssai{
+									Sst: sNssaiInfo.SNssai.Sst,
+									Sd: sNssaiInfo.SNssai.Sd,
+								},
+							 }
+							sNssaiInfos = append(sNssaiInfos, snssai)
+						}
+						u.SNssaiInfos = sNssaiInfos
+					}
+				}
 				nodes[name] = *u
 		}
 
 		json := &factory.UserPlaneInformation{
 			UPNodes: nodes,
 		}
-        //json.UPNodes = UPNodes
-        //json := factory.UserPlaneInformation{
-                //UPNodes: &UPNodes,
-        //}
 
 		httpResponse := &http_wrapper.Response{
 				Header: nil,
