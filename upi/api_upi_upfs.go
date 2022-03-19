@@ -5,11 +5,52 @@ import (
 	"net"
 	"github.com/free5gc/smf/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/free5gc/http_wrapper"
 	smf_context "github.com/free5gc/smf/context"
 	"github.com/free5gc/pfcp/pfcpType"
 	"github.com/free5gc/smf/pfcp/message"
 	"github.com/free5gc/smf/factory"
 )
+
+func GetUpi(c *gin.Context) {
+		upi := smf_context.SMF_Self().UserPlaneInformation
+		nodes := make(map[string]factory.UPNode)
+		for name, upNode := range upi.UPNodes {
+				u := new(factory.UPNode)
+				switch upNode.Type {
+					case smf_context.UPNODE_UPF:
+					u.Type = "UPF"
+					case smf_context.UPNODE_AN:
+					u.Type = "AN"
+					u.ANIP = upNode.ANIP.String()
+					default:
+					u.Type = "Unkown"
+				}
+
+				nodeIDtoIp := upNode.NodeID.ResolveNodeIdToIp()
+				if nodeIDtoIp != nil {
+					u.NodeID = nodeIDtoIp.String()
+				}
+
+				nodes[name] = *u
+		}
+
+		json := &factory.UserPlaneInformation{
+			UPNodes: nodes,
+		}
+        //json.UPNodes = UPNodes
+        //json := factory.UserPlaneInformation{
+                //UPNodes: &UPNodes,
+        //}
+
+		httpResponse := &http_wrapper.Response{
+				Header: nil,
+				Status: http.StatusOK,
+				Body: json,
+		}
+
+		c.JSON(httpResponse.Status, httpResponse.Body)
+}
 
 func AddUPFs(upi *smf_context.UserPlaneInformation, upTopology *factory.UserPlaneInformation) {
 	for name, node := range upTopology.UPNodes {

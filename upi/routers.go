@@ -69,4 +69,10 @@ var routes = Routes{
 		"/upf",
 		PostUpiUPFs,
 	},
+	{
+		"GetUpiUPFs",
+		"GET",
+		"/upf",
+		GetUpi,
+	},
 }
