@@ -40,6 +40,7 @@ func GetUpi(c *gin.Context) {
 						for _, sNssaiInfo := range upNode.UPF.SNssaiInfos {
 							FDnnUpfInfoList := make([]factory.DnnUpfInfoItem, 0)
 							for _, dnnInfo := range sNssaiInfo.DnnList {
+								// TODO: uncomment once ueSubNet turns public
 								//FUEIPPools := make([]factory.UEIPPool, 0)
 								//for _, _ := range dnnInfo.UeIPPools {
 									//FUEIPPools = append(FUEIPPools, pool.ueSubNet.String())
@@ -59,7 +60,42 @@ func GetUpi(c *gin.Context) {
 							FsNssaiInfoList = append(FsNssaiInfoList, Fsnssai)
 						} // for sNssaiInfo
 						u.SNssaiInfos = FsNssaiInfoList
-					}
+					} // if UPF.SNssaiInfos
+
+					FNxList := make([]factory.InterfaceUpfInfoItem, 0)
+					for _, iface := range upNode.UPF.N3Interfaces {
+						endpoints := make([]string, 0)
+						// upf.go L90
+						if iface.EndpointFQDN != "" {
+							endpoints = append(endpoints, iface.EndpointFQDN)
+						}
+						for _, eIP := range iface.IPv4EndPointAddresses {
+							endpoints = append(endpoints, eIP.String())
+						}
+						FNxList = append(FNxList, factory.InterfaceUpfInfoItem{
+							InterfaceType: models.UpInterfaceType_N3,
+							Endpoints: endpoints,
+							NetworkInstance: iface.NetworkInstance,
+						})
+					} // for N3Interfaces
+
+					//FN9List := make([]factory.InterfaceUpfInfoItem, 0)
+					for _, iface := range upNode.UPF.N9Interfaces {
+						endpoints := make([]string, 0)
+						// upf.go L90
+						if iface.EndpointFQDN != "" {
+							endpoints = append(endpoints, iface.EndpointFQDN)
+						}
+						for _, eIP := range iface.IPv4EndPointAddresses {
+							endpoints = append(endpoints, eIP.String())
+						}
+						FNxList = append(FNxList, factory.InterfaceUpfInfoItem{
+							InterfaceType: models.UpInterfaceType_N9,
+							Endpoints: endpoints,
+							NetworkInstance: iface.NetworkInstance,
+						})
+					} // N9Interfaces
+					u.InterfaceUpfInfoList = FNxList
 				}
 				nodes[name] = *u
 		}
