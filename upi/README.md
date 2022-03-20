@@ -4,11 +4,13 @@ This is the UPI endpoint collection.
 
 ## API
 
+**Note:** `smf_ip_address` can be overridden with `bindingIPv4` attribute in smf configuration file
+
 ### Add UPF
 
 Add UPF definition to the datamodel.
 
-**Note:** SMF must access UPF `node_id` (N4) so that it can register it
+**Note:** SMF must be able to access ip/fqdn specified in UPF `node_id` (management interface N4)
 
 ```
 curl -H "Content-type: application/json" -X POST '{...}' http://smf_address:8000/upi/v1/upf

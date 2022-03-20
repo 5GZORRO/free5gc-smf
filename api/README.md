@@ -7,7 +7,7 @@ session creation.
 
 The service is jointly deployed with smf. Refer to free5gc [docker-compose](https://github.ibm.com/WEIT/free5gc-compose/tree/e0d4742-dynamic_load) setup
 
-## API
+## API - default topology
 
 ### Update default topology
 
@@ -72,8 +72,10 @@ Invocation example:
     }
 ```
 
+## API - specific topology
 
-### Create group
+
+### Create topology group
 
 Create a group
 
@@ -274,10 +276,12 @@ Alternatively - pass json file
 
 ### Update topology with link
 
-Update topology entry with the provided link. Note: group entry is created if does not exist
+Add a single link to a given topology
+
+**Note:** group entry is created if does not exist
 
 ```
-curl -H "Content-type: application/json" -X POST http://smf_api_address:8080/ue-routes/<group_name>/topology
+curl -H "Content-type: application/json" -X PUT http://smf_api_address:8080/ue-routes/<group_name>/topology
 ```
 
 REST path:
