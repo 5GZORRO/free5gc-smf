@@ -230,7 +230,7 @@ func NewUEIPPool(factoryPool *factory.UEIPPool) *UeIPPool {
 	}
 
 	ueIPPool := &UeIPPool{
-		ueSubNet: ipNet,
+		UeSubNet: ipNet,
 		pool:     newPool,
 	}
 	return ueIPPool
@@ -589,7 +589,7 @@ func (upi *UserPlaneInformation) SelectUPFAndAllocUEIP(selection *UPFSelectionPa
 		}
 		sortedPoolList := createPoolListForSelection(pools)
 		for _, pool := range sortedPoolList {
-			logger.CtxLog.Debugf("check start UEIPPool(%+v)", pool.ueSubNet)
+			logger.CtxLog.Debugf("check start UEIPPool(%+v)", pool.UeSubNet)
 			addr := pool.allocate()
 			if addr != nil {
 				logger.CtxLog.Infof("Selected UPF: %s",
@@ -637,7 +637,7 @@ func getUEIPPool(upNode *UPNode, selection *UPFSelectionParams) []*UeIPPool {
 func (ueIPPool *UeIPPool) allocate() net.IP {
 	allocVal, res := ueIPPool.pool.Allocate()
 	if !res {
-		logger.CtxLog.Warnf("Pool is empty: %+v", ueIPPool.ueSubNet)
+		logger.CtxLog.Warnf("Pool is empty: %+v", ueIPPool.UeSubNet)
 		return nil
 	}
 	buf := make([]byte, 4)
@@ -661,7 +661,7 @@ func findPoolByAddr(upf *UPNode, addr net.IP) *UeIPPool {
 	for _, snssaiInfo := range upf.UPF.SNssaiInfos {
 		for _, dnnInfo := range snssaiInfo.DnnList {
 			for _, pool := range dnnInfo.UeIPPools {
-				if pool.ueSubNet.Contains(addr) {
+				if pool.UeSubNet.Contains(addr) {
 					return pool
 				}
 			}

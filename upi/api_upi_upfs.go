@@ -40,14 +40,15 @@ func GetUpi(c *gin.Context) {
 						for _, sNssaiInfo := range upNode.UPF.SNssaiInfos {
 							FDnnUpfInfoList := make([]factory.DnnUpfInfoItem, 0)
 							for _, dnnInfo := range sNssaiInfo.DnnList {
-								// TODO: uncomment once ueSubNet turns public
-								//FUEIPPools := make([]factory.UEIPPool, 0)
-								//for _, _ := range dnnInfo.UeIPPools {
-									//FUEIPPools = append(FUEIPPools, pool.ueSubNet.String())
-								//} // for pool
+								FUEIPPools := make([]factory.UEIPPool, 0)
+								for _, pool := range dnnInfo.UeIPPools {
+									FUEIPPools = append(FUEIPPools, factory.UEIPPool{
+											Cidr: pool.UeSubNet.String(),
+										})
+								} // for pool
 								FDnnUpfInfoList = append(FDnnUpfInfoList, factory.DnnUpfInfoItem{
 									Dnn: dnnInfo.Dnn,
-									//Pools: FUEIPPools,
+									Pools: FUEIPPools,
 								})
 							} // for dnnInfo
 							Fsnssai := factory.SnssaiUpfInfoItem {
