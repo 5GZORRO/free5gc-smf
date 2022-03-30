@@ -81,10 +81,8 @@ REST path:
 Return:
 
 ```
-    status - 200
+    status - 200, 404 (if not found)
 ```
-
-TODO add example
 
 ### Dump UPFs
 

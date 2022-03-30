@@ -19,13 +19,21 @@ func DeleteUpiUpf(c *gin.Context) {
 
 	upfRef := req.Params["upfRef"]
 	upi := smf_context.SMF_Self().UserPlaneInformation
-	for name, _ := range upi.UPNodes {
-		if name == upfRef {
-			logger.InitLog.Infof("UPF [%s] FOUND and is about to get removed.\n", name)
-			// TODO
-		}
+	found := false
+
+	_, ok := upi.UPNodes[upfRef]
+	if ok {
+		found = true
+		logger.InitLog.Infof("UPF [%s] FOUND and is about to get removed.\n", upfRef)
+		// TODO: do we need to remove/free internal UPF structure?
+		delete(upi.UPNodes, upfRef)
+	}	
+
+	if found {
+		c.JSON(http.StatusNoContent, gin.H{})
+	} else {
+		c.JSON(http.StatusNotFound, gin.H{})
 	}
-	c.JSON(http.StatusNoContent, gin.H{})
 }
 
 
