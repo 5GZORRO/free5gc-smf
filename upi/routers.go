@@ -75,4 +75,10 @@ var routes = Routes{
 		"/upf",
 		GetUpi,
 	},
+	{
+		"DeleteUpiUPFs",
+		"DELETE",
+		"/upf/:upfRef",
+		DeleteUpiUpf,
+	},
 }

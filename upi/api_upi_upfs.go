@@ -13,6 +13,22 @@ import (
 	"github.com/free5gc/openapi/models"
 )
 
+func DeleteUpiUpf(c *gin.Context) {
+	req := http_wrapper.NewRequest(c.Request, nil)
+	req.Params["upfRef"] = c.Params.ByName("upfRef")
+
+	upfRef := req.Params["upfRef"]
+	upi := smf_context.SMF_Self().UserPlaneInformation
+	for name, _ := range upi.UPNodes {
+		if name == upfRef {
+			logger.InitLog.Infof("UPF [%s] FOUND and is about to get removed.\n", name)
+			// TODO
+		}
+	}
+	c.JSON(http.StatusNoContent, gin.H{})
+}
+
+
 func GetUpi(c *gin.Context) {
 		upi := smf_context.SMF_Self().UserPlaneInformation
 		nodes := make(map[string]factory.UPNode)

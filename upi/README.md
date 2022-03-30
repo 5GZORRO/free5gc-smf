@@ -64,6 +64,28 @@ curl -X POST \
 {"status":"OK"}
 ```
 
+### Delete UPF
+
+Delete UPF definition from the datamodel.
+
+```
+curl -H "Content-type: application/json" -X DELETE http://smf_address:8000/upi/v1/upf/<upf name>
+```
+
+REST path:
+
+```
+    smf_ip_address - SMF ipaddress
+```
+
+Return:
+
+```
+    status - 200
+```
+
+TODO add example
+
 ### Dump UPFs
 
 Get UPF datamodel
