@@ -243,6 +243,52 @@ def ueroutes_topology_add_link(group_name):
     return response
 
 
+@proxy.route('/ue-routes/<group_name>/topology/<upf_name>', methods=['DELETE'])
+def ueroutes_topology_remove_link(group_name, upf_name):
+    """
+    Remove the links where upf participates
+
+    :param group_name: group name
+    :type group_name: ``str``
+
+    :param upf_name: upf name
+    :type upf_name: ``str``
+    """
+    try:
+        global ueroutes
+
+        ls = ueroutes['ueRoutingInfo'].setdefault(group_name, {}).setdefault('topology', [])
+        es_to_remove = []
+        for e in ls:
+            if e['A'] == upf_name or e['B'] == upf_name:
+                es_to_remove.append(e)
+
+        if not es_to_remove:
+            raise KeyError('UPF %s not found' % upf_name)
+        for e in es_to_remove:
+            sys.stdout.write('Removing link: [%s]\n' % e)
+            ls.remove(e)
+
+        if len(ls) == 0:
+            # group exists now (see setdefault above)
+            # reset sp
+            ueroutes['ueRoutingInfo'][group_name]['specificPath'] = []
+
+        print(ueroutes)
+        return ('OK', 200)
+
+    except KeyError as e:
+        response = flask.jsonify({'error not found': '%s' % str(e)})
+        response.status_code = 404
+
+    except Exception as e:
+        response = flask.jsonify({'error': '%s' % str(e)})
+        response.status_code = 500
+
+    print(response)
+    return response
+
+
 @proxy.route('/ue-routes/<group_name>/topology', methods=['GET'])
 def ueroutes_topology_get(group_name):
     try:
@@ -268,7 +314,7 @@ def ueroutes_get():
     '''
     This endpoint is consumed by SMF
     '''
-    sys.stdout.write ('Enter /ur-routes\n')
+    sys.stdout.write ('Enter /ue-routes\n')
     global prefix
     global ueroutes
     if not ueroutes:

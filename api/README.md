@@ -135,11 +135,9 @@ Invocation example:
       ],
       "specificPath": [
         {
-          "dest": "60.61.0.0/16",
+          "dest": "10.10.10.0/24",
           "path": [
-            "UPF-R1",
-            "UPF-T1",
-            "UPF-C1"
+            "UPF-R1"
           ]
         }
       ],
@@ -321,4 +319,34 @@ curl -X PUT \
   http://127.0.0.1:8080/ue-routes/red/topology \
   -H 'content-type: application/json' \
   -d '{"A": "UPF-T1", "B": "UPF-C2"}}'
+```
+
+### Remove UPF from topology
+
+**Note:** UPF is being removed from its current position which may lead to a broken topology
+
+```
+curl -H "Content-type: application/json" -X DELETE http://smf_api_address:8080/ue-routes/<group_name>/topology/<upf_name>
+```
+
+REST path:
+
+```
+    smf_api_ip_address - ipaddress of SMF-ext service
+    group_name         - the name of the group (str)
+    upf_name           - the UPF to remove (str)
+```
+
+Return:
+
+```
+    status - 204, 404 (not found)
+```
+
+Invocation example:
+
+```bash
+curl -X DELETE \
+  http://127.0.0.1:8080/ue-routes/red/topology/UPF-R1 \
+  -H 'content-type: application/json'
 ```
