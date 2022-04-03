@@ -303,7 +303,7 @@ define path: gNB1 -> UPF-R1 -> UPF-T1 -> UPF-C2
 curl -X PUT \
   http://127.0.0.1:8080/ue-routes/red/topology \
   -H 'content-type: application/json' \
-  -d '{"A": "gNB1", "B": "UPF-R1"}}'
+  -d '{"A": "gNB1", "B": "UPF-R1"}'
 ```
 
 
@@ -311,14 +311,14 @@ curl -X PUT \
 curl -X PUT \
   http://127.0.0.1:8080/ue-routes/red/topology \
   -H 'content-type: application/json' \
-  -d '{"A": "UPF-R1", "B": "UPF-T1"}}'
+  -d '{"A": "UPF-R1", "B": "UPF-T1"}'
 ```
 
 ```bash
 curl -X PUT \
   http://127.0.0.1:8080/ue-routes/red/topology \
   -H 'content-type: application/json' \
-  -d '{"A": "UPF-T1", "B": "UPF-C2"}}'
+  -d '{"A": "UPF-T1", "B": "UPF-C2"}'
 ```
 
 ### Remove UPF from topology
