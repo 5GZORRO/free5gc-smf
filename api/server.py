@@ -26,7 +26,7 @@ def find(l, predicate):
     return results[0] if len(results) > 0 else None
 
 
-links = {}
+links = dict(links=[])
 
 prefix = {
     "info": {
@@ -67,18 +67,103 @@ def hello():
 
 @proxy.route("/links", methods=['POST'])
 def links_post():
+    """
+    Set default links to the one passed in payload (json)
+    Payload example:
+        "links": [
+                {"A": "gNB1", "B": "UPF-R1"},
+                {"A": "UPF-R1", "B": "UPF-T1"},
+                {"A": "UPF-T1", "B": "UPF-C1"}
+            ]
+
+    :param links: array of links (see example above)
+    :type links: ``list`` of ``json`` elements
+    """
     sys.stdout.write ('Enter POST /links\n')
     value = getMessagePayload()
     global links
-    links = value
-    return flask.jsonify(links)
+    links['links'] = value['links']
+    print(links)
+    return ('OK', 200)
+
+
+@proxy.route("/links", methods=['PUT'])
+def links_put():
+    """
+    Add a link to default links.
+
+    :param A: from node name
+    :type A: ``str``
+
+    :param B: to node name
+    :type B: ``str``
+    """
+    sys.stdout.write ('Enter PUT /links\n')
+    try:
+        values = getMessagePayload()
+
+        global links
+        links['links'].append(values)
+
+        print(links)
+        return ('OK', 200)
+
+    except KeyError as e:
+        response = flask.jsonify({'error missing key': '%s' % str(e)})
+        response.status_code = 404
+
+    except Exception as e:
+        response = flask.jsonify({'error': '%s' % str(e)})
+        response.status_code = 500
+
+    print(response)
+    return response
+
+
+@proxy.route('/links/<upf_name>', methods=['DELETE'])
+def links_delete(upf_name):
+    """
+    Remove the default links where upf participates
+
+    :param upf_name: upf name
+    :type upf_name: ``str``
+    """
+    sys.stdout.write ('Enter DELETE /links/%s\n' % upf_name)
+    try:
+        global links
+
+        ls = links['links']
+        es_to_remove = []
+        for e in ls:
+            if e['A'] == upf_name or e['B'] == upf_name:
+                es_to_remove.append(e)
+
+        if not es_to_remove:
+            raise KeyError('UPF %s not found' % upf_name)
+        for e in es_to_remove:
+            sys.stdout.write('Removing defulat link: [%s]\n' % e)
+            ls.remove(e)
+
+        print(links)
+        return ('OK', 200)
+
+    except KeyError as e:
+        response = flask.jsonify({'error not found': '%s' % str(e)})
+        response.status_code = 404
+
+    except Exception as e:
+        response = flask.jsonify({'error': '%s' % str(e)})
+        response.status_code = 500
+
+    print(response)
+    return response
 
 
 @proxy.route("/links", methods=['GET'])
 def links_get():
-    sys.stdout.write ('Enter /links\n')
+    sys.stdout.write ('Enter GET /links\n')
     global links
-    if not links:
+    if not links['links']:
         response = flask.jsonify({'NOT_FOUND': 404})
         response.status_code = 404
         return response
