@@ -9,7 +9,7 @@ The service is jointly deployed with smf. Refer to free5gc [docker-compose](http
 
 ## API - default topology
 
-### Update default topology
+### Set default topology
 
 Create or update default topology
 
@@ -72,12 +72,88 @@ Invocation example:
     }
 ```
 
+### Update default topology with link
+
+Add a single link to the topology
+
+```
+curl -H "Content-type: application/json" -X PUT http://smf_api_address:8080/links
+```
+
+REST path:
+
+```
+    smf_api_ip_address - ipaddress of SMF-ext service
+```
+
+Return:
+
+```
+    status - 200
+```
+
+Invocation examples:
+
+define path: gNB1 -> UPF-R1 -> UPF-T1 -> UPF-C2
+
+```bash
+curl -X PUT \
+  http://127.0.0.1:8080/links \
+  -H 'content-type: application/json' \
+  -d '{"A": "gNB1", "B": "UPF-R1"}'
+```
+
+
+```bash
+curl -X PUT \
+  http://127.0.0.1:8080/links \
+  -H 'content-type: application/json' \
+  -d '{"A": "UPF-R1", "B": "UPF-T1"}'
+```
+
+```bash
+curl -X PUT \
+  http://127.0.0.1:8080/links \
+  -H 'content-type: application/json' \
+  -d '{"A": "UPF-T1", "B": "UPF-C2"}'
+```
+
+### Delete UPF from default topology
+
+**Note:** UPF is being removed from its current position which may lead to a broken topology
+
+```
+curl -H "Content-type: application/json" -X DELETE http://smf_api_address:8080/links/<upf_name>
+```
+
+REST path:
+
+```
+    smf_api_ip_address - ipaddress of SMF-ext service
+    upf_name           - the UPF to remove (str)
+```
+
+Return:
+
+```
+    status - 204, 404 (not found)
+```
+
+Invocation example:
+
+```bash
+curl -X DELETE \
+  http://127.0.0.1:8080/likns/UPF-R1 \
+  -H 'content-type: application/json'
+```
+
+
 ## API - specific topology
 
 
 ### Create topology group
 
-Create a group
+Create an empty group
 
 ```
 curl -H "Content-type: application/json" -X POST http://smf_api_address:8080/ue-routes/<group_name>
@@ -102,9 +178,9 @@ Invocation example:
     curl -H "Content-type: application/json" -X POST http://smf_api_address:8080/ue-routes/red
 ```
 
-### Get group info
+### Get topology group
 
-Returns information for the given group
+Returns information (members, topology, ..) for the given group
 
 ```
 curl -H "Content-type: application/json" -GET http://smf_api_address:8080/ue-routes/<group_name>
