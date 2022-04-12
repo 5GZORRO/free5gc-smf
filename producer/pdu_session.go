@@ -56,6 +56,47 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	smContext.SMLock.Lock()
 	defer smContext.SMLock.Unlock()
 
+
+	// moved to here because we need Ambr to be sent to smf-ext 
+
+	// Query UDM
+	if problemDetails, err := consumer.SendNFDiscoveryUDM(); err != nil {
+		logger.PduSessLog.Warnf("Send NF Discovery Serving UDM Error[%v]", err)
+	} else if problemDetails != nil {
+		logger.PduSessLog.Warnf("Send NF Discovery Serving UDM Problem[%+v]", problemDetails)
+	} else {
+		logger.PduSessLog.Infoln("Send NF Discovery Serving UDM Successfully")
+	}
+
+
+	smPlmnID := createData.Guami.PlmnId
+
+	smDataParams := &Nudm_SubscriberDataManagement.GetSmDataParamOpts{
+		Dnn:         optional.NewString(createData.Dnn),
+		PlmnId:      optional.NewInterface(smPlmnID.Mcc + smPlmnID.Mnc),
+		SingleNssai: optional.NewInterface(openapi.MarshToJsonString(smContext.Snssai)),
+	}
+
+	SubscriberDataManagementClient := smf_context.SMF_Self().SubscriberDataManagementClient
+
+	if sessSubData, rsp, err := SubscriberDataManagementClient.
+		SessionManagementSubscriptionDataRetrievalApi.
+		GetSmData(context.Background(), smContext.Supi, smDataParams); err != nil {
+		logger.PduSessLog.Errorln("Get SessionManagementSubscriptionData error:", err)
+	} else {
+		defer func() {
+			if rspCloseErr := rsp.Body.Close(); rspCloseErr != nil {
+				logger.PduSessLog.Errorf("GetSmData response body cannot close: %+v", rspCloseErr)
+			}
+		}()
+		if len(sessSubData) > 0 {
+			smContext.DnnConfiguration = sessSubData[0].DnnConfigurations[smContext.Dnn]
+		} else {
+			logger.PduSessLog.Errorln("SessionManagementSubscriptionData from UDM is nil")
+		}
+	}
+
+
 	if err := smf_context.DynamicLoadLinksGET(createData.Supi); err != nil {
 		logger.PduSessLog.Errorf("ERROR reloading links [%s] - using the the pre-existing ones..", err)
 	}
@@ -74,15 +115,6 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	if smContext.DNNInfo == nil {
 		logger.PduSessLog.Errorf("S-NSSAI[sst: %d, sd: %s] DNN[%s] not matched DNN Config",
 			createData.SNssai.Sst, createData.SNssai.Sd, createData.Dnn)
-	}
-
-	// Query UDM
-	if problemDetails, err := consumer.SendNFDiscoveryUDM(); err != nil {
-		logger.PduSessLog.Warnf("Send NF Discovery Serving UDM Error[%v]", err)
-	} else if problemDetails != nil {
-		logger.PduSessLog.Warnf("Send NF Discovery Serving UDM Problem[%+v]", problemDetails)
-	} else {
-		logger.PduSessLog.Infoln("Send NF Discovery Serving UDM Successfully")
 	}
 
 	// IP Allocation
@@ -143,32 +175,6 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	smContext.PDUAddress = ip
 	smContext.SelectedUPF = selectedUPF
 
-	smPlmnID := createData.Guami.PlmnId
-
-	smDataParams := &Nudm_SubscriberDataManagement.GetSmDataParamOpts{
-		Dnn:         optional.NewString(createData.Dnn),
-		PlmnId:      optional.NewInterface(smPlmnID.Mcc + smPlmnID.Mnc),
-		SingleNssai: optional.NewInterface(openapi.MarshToJsonString(smContext.Snssai)),
-	}
-
-	SubscriberDataManagementClient := smf_context.SMF_Self().SubscriberDataManagementClient
-
-	if sessSubData, rsp, err := SubscriberDataManagementClient.
-		SessionManagementSubscriptionDataRetrievalApi.
-		GetSmData(context.Background(), smContext.Supi, smDataParams); err != nil {
-		logger.PduSessLog.Errorln("Get SessionManagementSubscriptionData error:", err)
-	} else {
-		defer func() {
-			if rspCloseErr := rsp.Body.Close(); rspCloseErr != nil {
-				logger.PduSessLog.Errorf("GetSmData response body cannot close: %+v", rspCloseErr)
-			}
-		}()
-		if len(sessSubData) > 0 {
-			smContext.DnnConfiguration = sessSubData[0].DnnConfigurations[smContext.Dnn]
-		} else {
-			logger.PduSessLog.Errorln("SessionManagementSubscriptionData from UDM is nil")
-		}
-	}
 
 	establishmentRequest := m.PDUSessionEstablishmentRequest
 	smContext.HandlePDUSessionEstablishmentRequest(establishmentRequest)
