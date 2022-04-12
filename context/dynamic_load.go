@@ -42,7 +42,8 @@ func ReadFromService(SUPI string) ([]byte, error) {
 	return resData, nil
 }
 
-func ReadUERoutesFromService() ([]byte, error) {
+func ReadUERoutesFromService(Uplink string, Downlink string) ([]byte, error) {
+	logger.CtxLog.Infof("ReadUERoutesFromService: Uplink: %s, Downlink: %s", Uplink, Downlink)
 	os.Setenv("GODEBUG", "http2client=0")
 	finalUri := fmt.Sprintf("%s/%s", SMF_Self().SmfExtUri, "ue-routes")
 	req, err1 := http.NewRequest("GET", finalUri, nil)
@@ -71,9 +72,9 @@ func ReadUERoutesFromService() ([]byte, error) {
 	return resData, nil
 }
 
-func DynamicLoadLinksGET(SUPI string) error {
-	logger.CtxLog.Infof("DynamicLoadLinksGET: SUPI = [%s]", SUPI)
-	resData, err := ReadFromService(SUPI)
+func DynamicLoadLinksGET(smContext *SMContext) error {
+	logger.CtxLog.Infof("DynamicLoadLinksGET: SUPI = [%s]", smContext.Supi)
+	resData, err := ReadFromService(smContext.Supi)
 	if err != nil {
 		return errors.New(err.Error())
 	}
@@ -91,7 +92,8 @@ func DynamicLoadLinksGET(SUPI string) error {
 
 func DynamicLoadUERoutesGET(smContext *SMContext) error {
 	logger.CtxLog.Infof("DynamicLoadUERoutesGET")
-	resData, err := ReadUERoutesFromService()
+	resData, err := ReadUERoutesFromService(smContext.DnnConfiguration.SessionAmbr.Uplink,
+		smContext.DnnConfiguration.SessionAmbr.Downlink)
 	if err != nil {
 		return errors.New(err.Error())
 	}

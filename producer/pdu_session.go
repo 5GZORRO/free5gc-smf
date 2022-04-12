@@ -97,7 +97,7 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	}
 
 
-	if err := smf_context.DynamicLoadLinksGET(createData.Supi); err != nil {
+	if err := smf_context.DynamicLoadLinksGET(smContext); err != nil {
 		logger.PduSessLog.Errorf("ERROR reloading links [%s] - using the the pre-existing ones..", err)
 	}
 
