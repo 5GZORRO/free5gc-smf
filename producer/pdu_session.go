@@ -96,6 +96,11 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 		}
 	}
 
+	//logger.PduSessLog.Infof("smContext.UeLocation [%s]", smContext.UeLocation)
+	//logger.PduSessLog.Infof("smContext.NR [%s]", smContext.UeLocation.NrLocation)
+	//logger.PduSessLog.Infof("smContext.UeLocation.NR.Mnc [%s]", smContext.UeLocation.NrLocation.Tai.PlmnId.Mnc)
+	//logger.PduSessLog.Infof("smContext.UeLocation.NR.Mcc [%s]", smContext.UeLocation.NrLocation.Tai.PlmnId.Mcc)
+	//logger.PduSessLog.Infof("smContext.UeLocation.NR.Tac [%s]", smContext.UeLocation.NrLocation.Tai.Tac)
 
 	if err := smf_context.DynamicLoadLinksGET(smContext); err != nil {
 		logger.PduSessLog.Errorf("ERROR reloading links [%s] - using the the pre-existing ones..", err)
