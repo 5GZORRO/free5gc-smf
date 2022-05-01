@@ -1,6 +1,7 @@
 package context
 
 import (
+	"github.com/free5gc/smf/logger"
 	"reflect"
 )
 
@@ -56,10 +57,12 @@ func (bpMGR *BPManager) SelectPSA2(smContext *SMContext) {
 	bpMGR.ActivatedPaths = []*DataPath{}
 	for _, dataPath := range smContext.Tunnel.DataPathPool {
 		if dataPath.Activated {
+			logger.PfcpLog.Traceln("SelectPSA2: Add to ActivatedPaths:\n" + dataPath.String() + "\n")
 			bpMGR.ActivatedPaths = append(bpMGR.ActivatedPaths, dataPath)
 		} else {
 			if !hasSelectPSA2 {
 				bpMGR.ActivatingPath = dataPath
+				logger.PfcpLog.Traceln("SelectPSA2: Add to ActivatingPath:\n" + dataPath.String() + "\n")
 				hasSelectPSA2 = true
 			}
 		}
@@ -92,6 +95,11 @@ func (bpMGR *BPManager) FindULCL(smContext *SMContext) error {
 			bpMGR.ULCL = upf
 			maxDepth = depth
 		}
+	}
+	if bpMGR.ULCL != nil {
+		logger.CtxLog.Warnf("bpMGR.ULCL:[%+v]", bpMGR.ULCL.NodeID.ResolveNodeIdToIp().To4())
+	} else {
+		logger.CtxLog.Warnf("bpMGR.ULCL NULL !!")
 	}
 	return nil
 }
