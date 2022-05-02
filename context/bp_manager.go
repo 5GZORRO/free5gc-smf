@@ -55,6 +55,9 @@ func NewBPManager(supi string) (bpManager *BPManager) {
 func (bpMGR *BPManager) SelectPSA2(smContext *SMContext) {
 	hasSelectPSA2 := false
 	bpMGR.ActivatedPaths = []*DataPath{}
+	// smContext.Tunnel.DataPathPool: first entry should point to the default
+	// path derived from the ue-route topology
+	// Next ones are the preConfig paths
 	for _, dataPath := range smContext.Tunnel.DataPathPool {
 		if dataPath.Activated {
 			logger.PfcpLog.Traceln("SelectPSA2: Add to ActivatedPaths:\n" + dataPath.String() + "\n")
@@ -63,6 +66,7 @@ func (bpMGR *BPManager) SelectPSA2(smContext *SMContext) {
 			if !hasSelectPSA2 {
 				bpMGR.ActivatingPath = dataPath
 				logger.PfcpLog.Traceln("SelectPSA2: Add to ActivatingPath:\n" + dataPath.String() + "\n")
+				// It seems to select a preConfig path
 				hasSelectPSA2 = true
 			}
 		}
@@ -71,11 +75,15 @@ func (bpMGR *BPManager) SelectPSA2(smContext *SMContext) {
 
 func (bpMGR *BPManager) FindULCL(smContext *SMContext) error {
 	bpMGR.UpdatedBranchingPoint = make(map[*UPF]int)
+	// this is the preConfig path
 	activatingPath := bpMGR.ActivatingPath
+	// this is the default selected path that already established per this session
 	for _, psa1Path := range bpMGR.ActivatedPaths {
 		depth := 0
+		// the 1st upf in the established path
 		psa1CurDPNode := psa1Path.FirstDPNode
 		for psa2CurDPNode := activatingPath.FirstDPNode; psa2CurDPNode != nil; psa2CurDPNode = psa2CurDPNode.Next() {
+			// if the node in preConfig path is the 1st upf in the established one
 			if reflect.DeepEqual(psa2CurDPNode.UPF.NodeID, psa1CurDPNode.UPF.NodeID) {
 				psa1CurDPNode = psa1CurDPNode.Next()
 				depth++
