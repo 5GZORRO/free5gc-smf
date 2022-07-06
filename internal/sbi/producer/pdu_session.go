@@ -97,22 +97,25 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 			selectedUPF = smf_context.GetUserPlaneInformation().UPFs[selectedUPFName]
 		}
 	} else {
-		selectedUPF, ip = smf_context.GetUserPlaneInformation().SelectUPFAndAllocUEIP(upfSelectionParams)
-		smContext.PDUAddress = ip
-		logger.PduSessLog.Infof("UE[%s] PDUSessionID[%d] IP[%s]",
-			smContext.Supi, smContext.PDUSessionID, smContext.PDUAddress.String())
+//		selectedUPF, ip = smf_context.GetUserPlaneInformation().SelectUPFAndAllocUEIP(upfSelectionParams)
+//		smContext.PDUAddress = ip
+//		logger.PduSessLog.Infof("UE[%s] PDUSessionID[%d] IP[%s]",
+//			smContext.Supi, smContext.PDUSessionID, smContext.PDUAddress.String())
 	}
-	if ip == nil && (selectedUPF == nil || selectedUPFName == "") {
-		logger.PduSessLog.Error("failed allocate IP address for this SM")
+//	if ip == nil && (selectedUPF == nil || selectedUPFName == "") {
+//		logger.PduSessLog.Error("failed allocate IP address for this SM")
+//
+//		smContext.SMContextState = smf_context.InActive
+//		logger.CtxLog.Traceln("SMContextState Change State: ", smContext.SMContextState.String())
+//		logger.PduSessLog.Warnf("Data Path not found\n")
+//		logger.PduSessLog.Warnln("Selection Parameter: ", upfSelectionParams.String())
+//
+//		return makeErrorResponse(smContext, nasMessage.Cause5GSMInsufficientResourcesForSpecificSliceAndDNN,
+//			&Nsmf_PDUSession.InsufficientResourceSliceDnn)
+//	}
 
-		smContext.SMContextState = smf_context.InActive
-		logger.CtxLog.Traceln("SMContextState Change State: ", smContext.SMContextState.String())
-		logger.PduSessLog.Warnf("Data Path not found\n")
-		logger.PduSessLog.Warnln("Selection Parameter: ", upfSelectionParams.String())
-
-		return makeErrorResponse(smContext, nasMessage.Cause5GSMInsufficientResourcesForSpecificSliceAndDNN,
-			&Nsmf_PDUSession.InsufficientResourceSliceDnn)
-	}
+	// these can be nil in case of UE not being related to a group
+	// in such case, need to ensure to fill them up before tunnel creation
 	smContext.PDUAddress = ip
 	smContext.SelectedUPF = selectedUPF
 
@@ -194,8 +197,8 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 		// UE has no pre-config path.
 		// Use default route
 		logger.PduSessLog.Infof("SUPI[%s] has no pre-config route", createData.Supi)
-		defaultUPPath := smf_context.GetUserPlaneInformation().GetDefaultUserPlanePathByDNNAndUPF(
-			upfSelectionParams, smContext.SelectedUPF)
+		defaultUPPath := smf_context.GetUserPlaneInformation().GetDefaultUserPlanePathByDNNAndUPFWeight(
+			upfSelectionParams)
 		defaultPath = smf_context.GenerateDataPath(defaultUPPath, smContext)
 		if defaultPath != nil {
 			defaultPath.IsDefaultPath = true

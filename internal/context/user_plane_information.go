@@ -280,8 +280,6 @@ func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNNAndUPF(selection *U
 	upf *UPNode) (path UPPath) {
 	nodeID := upf.NodeID.ResolveNodeIdToIp().String()
 
-	upi.GenerateDefaultPathWeight(selection)
-
 	if upi.DefaultUserPlanePathToUPF[selection.String()] != nil {
 		path, pathExist := upi.DefaultUserPlanePathToUPF[selection.String()][nodeID]
 		logger.CtxLog.Traceln("In GetDefaultUserPlanePathByDNN")
@@ -292,6 +290,15 @@ func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNNAndUPF(selection *U
 	}
 	if pathExist := upi.GenerateDefaultPathToUPF(selection, upf); pathExist {
 		return upi.DefaultUserPlanePathToUPF[selection.String()][nodeID]
+	}
+	return nil
+}
+
+func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNNAndUPFWeight(selection *UPFSelectionParams) (path UPPath) {
+
+	path, pathExist := upi.GenerateDefaultPathWeight(selection)
+	if pathExist {
+		return path
 	}
 	return nil
 }
@@ -424,7 +431,7 @@ func (upi *UserPlaneInformation) GenerateDefaultPathToUPF(selection *UPFSelectio
 	return pathExist
 }
 
-func (upi *UserPlaneInformation) GenerateDefaultPathWeight(selection *UPFSelectionParams) bool {
+func (upi *UserPlaneInformation) GenerateDefaultPathWeight(selection *UPFSelectionParams) (path []*UPNode, pathExist bool) {
 	var source *UPNode
 
 	logger.CtxLog.Infof("!!!!!!!!!!! ENTER GenerateDefaultPathWeight !!!!!!!!!!!!")
@@ -438,7 +445,7 @@ func (upi *UserPlaneInformation) GenerateDefaultPathWeight(selection *UPFSelecti
 
 	if source == nil {
 		logger.CtxLog.Errorf("There is no AN Node in config file!")
-		return false
+		return nil, false
 	}
 
 	// Run DFS
@@ -448,9 +455,9 @@ func (upi *UserPlaneInformation) GenerateDefaultPathWeight(selection *UPFSelecti
 		visited[upNode] = false
 	}
 
-	_, pathExist := getPathWeight(source, visited, selection, upi.WeightMap, upi.UPFIPToName)
+	_, _ = getPathWeight(source, visited, selection, upi.WeightMap, upi.UPFIPToName)
 
-	return pathExist
+	return
 }
 
 func (upi *UserPlaneInformation) selectMatchUPF(selection *UPFSelectionParams) []*UPNode {
@@ -514,25 +521,23 @@ func getPathBetween(cur *UPNode, dest *UPNode, visited map[*UPNode]bool,
 func getPathWeight(cur *UPNode, visited map[*UPNode]bool,
 	selection *UPFSelectionParams,
 	weights map[string]map[string]int, ipToName map[string]string) (path []*UPNode, pathExist bool) {
+
 	curName := ipToName[cur.NodeID.ResolveNodeIdToIp().String()]
 	logger.CtxLog.Debugf("getPathWeight: At UPF: %s", curName)
 	logger.CtxLog.Debugf("getPathWeight: WEIGHTS UPF: %+v", weights)
 
 	visited[cur] = true
 
-	//selectedSNssai := selection.SNssai
-
 	for _, node := range cur.Links {
 		if !visited[node] {
 			name := ipToName[node.NodeID.ResolveNodeIdToIp().String()]
-			// check weight
 			logger.CtxLog.Debugf("getPathWeight: Check weight of child UPF: %s", name)
+
 			if weights[curName][name] == 0 {
 				logger.CtxLog.Debugf("getPathWeight: No weight for you %s", name)
 				visited[node] = true
 				continue
 			}
-			// TODO: ssnsai validation
 
 			weights[curName][name] = weights[curName][name] - 1
 			path_tail, path_exist := getPathWeight(node, visited, selection, weights, ipToName)
@@ -546,12 +551,36 @@ func getPathWeight(cur *UPNode, visited map[*UPNode]bool,
 
 				return
 			}
+			// TODO: if no path_exist (e.g. no empty IP pool) -- should we increase
+			// back weights[curName][name] ?
 		}
 	}
 
 	path = make([]*UPNode, 0)
 	path = append(path, cur)
 	pathExist = true
+	if len(path) == 1 {
+		logger.CtxLog.Debugf("getPathWeight: Detected Anchor UPF: %s", curName)
+		pools := getUEIPPool(cur, selection)
+		if len(pools) == 0 {
+			pathExist = false
+		} else {
+			sortedPoolList := createPoolListForSelection(pools)
+			for _, pool := range sortedPoolList {
+				logger.CtxLog.Debugf("getPathWeight: check start UEIPPool(%+v)", pool.ueSubNet)
+				addr := pool.allocate()
+				if addr != nil {
+					logger.CtxLog.Infof("getPathWeight: Selected UPF: %s, addr: %s", curName, addr.String())
+					// TODO: return back addr too...
+				}
+				// if all addresses in pool are used, search next pool
+				logger.CtxLog.Debug("getPathWeight: check next pool")
+			}
+			// if all addresses in UPF are used, search next UPF
+			logger.CtxLog.Debug("getPathWeight: check next anchore upf")
+			pathExist = false
+		}
+	}
 
 	return
 }
