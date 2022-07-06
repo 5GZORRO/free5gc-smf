@@ -541,6 +541,7 @@ func getPathWeight(cur *UPNode, visited map[*UPNode]bool,
 
 			weights[curName][name] = weights[curName][name] - 1
 			path_tail, path_exist := getPathWeight(node, visited, selection, weights, ipToName)
+			logger.CtxLog.Debugf("getPathWeight: Just returned from getPathWeight with path len: %d", len(path_tail))
 
 			if path_exist {
 				path = make([]*UPNode, 0)
@@ -559,27 +560,30 @@ func getPathWeight(cur *UPNode, visited map[*UPNode]bool,
 	path = make([]*UPNode, 0)
 	path = append(path, cur)
 	pathExist = true
-	if len(path) == 1 {
+
+	if len(path) == 1 { // means this is an anchor 
 		logger.CtxLog.Debugf("getPathWeight: Detected Anchor UPF: %s", curName)
 		pools := getUEIPPool(cur, selection)
 		if len(pools) == 0 {
 			pathExist = false
-		} else {
-			sortedPoolList := createPoolListForSelection(pools)
-			for _, pool := range sortedPoolList {
-				logger.CtxLog.Debugf("getPathWeight: check start UEIPPool(%+v)", pool.ueSubNet)
-				addr := pool.allocate()
-				if addr != nil {
-					logger.CtxLog.Infof("getPathWeight: Selected UPF: %s, addr: %s", curName, addr.String())
-					// TODO: return back addr too...
-				}
-				// if all addresses in pool are used, search next pool
-				logger.CtxLog.Debug("getPathWeight: check next pool")
-			}
-			// if all addresses in UPF are used, search next UPF
-			logger.CtxLog.Debug("getPathWeight: check next anchore upf")
-			pathExist = false
+			logger.CtxLog.Infof("getPathWeight: No pools defined for you")
+			return
 		}
+		sortedPoolList := createPoolListForSelection(pools)
+		for _, pool := range sortedPoolList {
+			logger.CtxLog.Debugf("getPathWeight: check start UEIPPool(%+v)", pool.ueSubNet)
+			addr := pool.allocate()
+			if addr != nil {
+				logger.CtxLog.Infof("getPathWeight: Selected UPF: %s, addr: %s", curName, addr.String())
+				// TODO: return back addr too...
+				return
+			}
+			// if all addresses in pool are used, search next pool
+			logger.CtxLog.Debug("getPathWeight: check next pool")
+		}
+		// if all addresses in UPF are used, search next anchore ..
+		logger.CtxLog.Debug("getPathWeight: check next anchore upf")
+		pathExist = false
 	}
 
 	return
