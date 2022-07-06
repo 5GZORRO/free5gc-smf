@@ -440,6 +440,7 @@ func (dataPath *DataPath) ActivateTunnelAndPDR(smContext *SMContext, precedence 
 					logger.CtxLog.Errorln("ActivateTunnelAndPDR failed", err)
 					return
 				} else {
+					logger.CtxLog.Infof("WEIT upIP: [%s]", upIP.String())
 					ULFAR.ForwardingParameters.OuterHeaderCreation = &pfcpType.OuterHeaderCreation{
 						OuterHeaderCreationDescription: pfcpType.OuterHeaderCreationGtpUUdpIpv4,
 						Ipv4Address:                    upIP,
@@ -513,6 +514,7 @@ func (dataPath *DataPath) ActivateTunnelAndPDR(smContext *SMContext, precedence 
 					logger.CtxLog.Errorln("ActivateTunnelAndPDR failed", err)
 					return
 				} else {
+					logger.CtxLog.Infof("WEIT upIP: [%s]", upIP.String())
 					DLFAR.ForwardingParameters = &ForwardingParameters{
 						DestinationInterface: pfcpType.DestinationInterface{InterfaceValue: pfcpType.DestinationInterfaceAccess},
 						OuterHeaderCreation: &pfcpType.OuterHeaderCreation{
@@ -536,6 +538,7 @@ func (dataPath *DataPath) ActivateTunnelAndPDR(smContext *SMContext, precedence 
 					dlOuterHeaderCreation.OuterHeaderCreationDescription = pfcpType.OuterHeaderCreationGtpUUdpIpv4
 					dlOuterHeaderCreation.Teid = smContext.Tunnel.ANInformation.TEID
 					dlOuterHeaderCreation.Ipv4Address = smContext.Tunnel.ANInformation.IPAddress.To4()
+					logger.CtxLog.Infof("WEIT ANInformation.IPAddress: [%s]", smContext.Tunnel.ANInformation.IPAddress.String())
 				}
 			}
 		}
