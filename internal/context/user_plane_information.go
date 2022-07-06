@@ -26,6 +26,8 @@ type UserPlaneInformation struct {
 	UPFsIPtoID                map[string]string               // ip->id table, for speed optimization
 	DefaultUserPlanePath      map[string][]*UPNode            // DNN to Default Path
 	DefaultUserPlanePathToUPF map[string]map[string][]*UPNode // DNN and UPF to Default Path
+	WeightMap                 map[string]map[string]int       // UPF name -> Map of {Linked UPF names -> int}
+
 }
 
 type UPNodeType string
@@ -68,6 +70,7 @@ func NewUserPlaneInformation(upTopology *factory.UserPlaneInformation) *UserPlan
 	anPool := make(map[string]*UPNode)
 	upfIPMap := make(map[string]string)
 	allUEIPPools := []*UeIPPool{}
+	weightMap := make(map[string]map[string]int)
 
 	for name, node := range upTopology.UPNodes {
 		upNode := new(UPNode)
@@ -159,9 +162,17 @@ func NewUserPlaneInformation(upTopology *factory.UserPlaneInformation) *UserPlan
 			logger.InitLog.Warningf("UPLink [%s] <=> [%s] not establish\n", link.A, link.B)
 			continue
 		}
+
+		if weightMap[link.A] == nil {
+			weightMap[link.A] = make(map[string]int)
+		}
+		weightMap[link.A][link.B] = link.W
+
 		nodeA.Links = append(nodeA.Links, nodeB)
 		nodeB.Links = append(nodeB.Links, nodeA)
 	}
+
+	logger.InitLog.Debugf("weightMap: %+v", weightMap)
 
 	userplaneInformation := &UserPlaneInformation{
 		UPNodes:                   nodePool,
@@ -172,6 +183,7 @@ func NewUserPlaneInformation(upTopology *factory.UserPlaneInformation) *UserPlan
 		UPFsIPtoID:                make(map[string]string),
 		DefaultUserPlanePath:      make(map[string][]*UPNode),
 		DefaultUserPlanePathToUPF: make(map[string]map[string][]*UPNode),
+		WeightMap:                 weightMap,
 	}
 
 	return userplaneInformation
@@ -267,6 +279,8 @@ func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNN(selection *UPFSele
 func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNNAndUPF(selection *UPFSelectionParams,
 	upf *UPNode) (path UPPath) {
 	nodeID := upf.NodeID.ResolveNodeIdToIp().String()
+
+	upi.GenerateDefaultPathWeight(selection)
 
 	if upi.DefaultUserPlanePathToUPF[selection.String()] != nil {
 		path, pathExist := upi.DefaultUserPlanePathToUPF[selection.String()][nodeID]
@@ -410,6 +424,35 @@ func (upi *UserPlaneInformation) GenerateDefaultPathToUPF(selection *UPFSelectio
 	return pathExist
 }
 
+func (upi *UserPlaneInformation) GenerateDefaultPathWeight(selection *UPFSelectionParams) bool {
+	var source *UPNode
+
+	logger.CtxLog.Infof("!!!!!!!!!!! ENTER GenerateDefaultPathWeight !!!!!!!!!!!!")
+
+	for _, node := range upi.AccessNetwork {
+		if node.Type == UPNODE_AN {
+			source = node
+			break
+		}
+	}
+
+	if source == nil {
+		logger.CtxLog.Errorf("There is no AN Node in config file!")
+		return false
+	}
+
+	// Run DFS
+	visited := make(map[*UPNode]bool)
+
+	for _, upNode := range upi.UPNodes {
+		visited[upNode] = false
+	}
+
+	_, pathExist := getPathWeight(source, visited, selection, upi.WeightMap, upi.UPFIPToName)
+
+	return pathExist
+}
+
 func (upi *UserPlaneInformation) selectMatchUPF(selection *UPFSelectionParams) []*UPNode {
 	upList := make([]*UPNode, 0)
 
@@ -466,6 +509,51 @@ func getPathBetween(cur *UPNode, dest *UPNode, visited map[*UPNode]bool,
 	}
 
 	return nil, false
+}
+
+func getPathWeight(cur *UPNode, visited map[*UPNode]bool,
+	selection *UPFSelectionParams,
+	weights map[string]map[string]int, ipToName map[string]string) (path []*UPNode, pathExist bool) {
+	curName := ipToName[cur.NodeID.ResolveNodeIdToIp().String()]
+	logger.CtxLog.Debugf("getPathWeight: At UPF: %s", curName)
+	logger.CtxLog.Debugf("getPathWeight: WEIGHTS UPF: %+v", weights)
+
+	visited[cur] = true
+
+	//selectedSNssai := selection.SNssai
+
+	for _, node := range cur.Links {
+		if !visited[node] {
+			name := ipToName[node.NodeID.ResolveNodeIdToIp().String()]
+			// check weight
+			logger.CtxLog.Debugf("getPathWeight: Check weight of child UPF: %s", name)
+			if weights[curName][name] == 0 {
+				logger.CtxLog.Debugf("getPathWeight: No weight for you %s", name)
+				visited[node] = true
+				continue
+			}
+			// TODO: ssnsai validation
+
+			weights[curName][name] = weights[curName][name] - 1
+			path_tail, path_exist := getPathWeight(node, visited, selection, weights, ipToName)
+
+			if path_exist {
+				path = make([]*UPNode, 0)
+				path = append(path, cur)
+
+				path = append(path, path_tail...)
+				pathExist = true
+
+				return
+			}
+		}
+	}
+
+	path = make([]*UPNode, 0)
+	path = append(path, cur)
+	pathExist = true
+
+	return
 }
 
 func (upi *UserPlaneInformation) selectAnchorUPF(source *UPNode, selection *UPFSelectionParams) []*UPNode {
