@@ -298,6 +298,19 @@ func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNNAndUPFWeight(select
 
 	path, pathExist := upi.GenerateDefaultPathWeight(selection)
 	if pathExist {
+		for _, upNode := range path {
+			switch upNode.Type {
+				case UPNODE_AN:
+					logger.CtxLog.Debugf("Resulted Weighted Path: UPNODE_AN: %s", upNode.ANIP.String())
+				case UPNODE_UPF:
+					name := upi.UPFIPToName[upNode.NodeID.ResolveNodeIdToIp().String()]
+					logger.CtxLog.Debugf("Resulted Weighted Path: UPNODE_UPF %s", name)
+			}
+		}
+		if path[0].Type == UPNODE_AN {
+			path = path[1:]
+		}
+
 		return path
 	}
 	return nil
@@ -455,7 +468,7 @@ func (upi *UserPlaneInformation) GenerateDefaultPathWeight(selection *UPFSelecti
 		visited[upNode] = false
 	}
 
-	_, _ = getPathWeight(source, visited, selection, upi.WeightMap, upi.UPFIPToName)
+	path, pathExist = getPathWeight(source, visited, selection, upi.WeightMap, upi.UPFIPToName)
 
 	return
 }
