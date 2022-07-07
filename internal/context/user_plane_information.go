@@ -294,26 +294,28 @@ func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNNAndUPF(selection *U
 	return nil
 }
 
-func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNNAndUPFWeight(selection *UPFSelectionParams) (path UPPath) {
+func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNNAndUPFWeight(selection *UPFSelectionParams) (selectedUPF *UPNode, ip net.IP, path UPPath) {
 
-	path, pathExist := upi.GenerateDefaultPathWeight(selection)
+	selectedUPF, ip, path, pathExist := upi.GenerateDefaultPathWeight(selection)
 	if pathExist {
-		for _, upNode := range path {
+		selectedUPFName := upi.UPFIPToName[selectedUPF.NodeID.ResolveNodeIdToIp().String()]
+		logger.CtxLog.Debugf("Resulted Weighted: selectedUPF: %s, ip: %s", selectedUPFName, ip.String())
+		for i, upNode := range path {
 			switch upNode.Type {
 				case UPNODE_AN:
-					logger.CtxLog.Debugf("Resulted Weighted Path: UPNODE_AN: %s", upNode.ANIP.String())
+					logger.CtxLog.Debugf("Resulted Weighted Path[%d]: UPNODE_AN: %s", i, upNode.ANIP.String())
 				case UPNODE_UPF:
 					name := upi.UPFIPToName[upNode.NodeID.ResolveNodeIdToIp().String()]
-					logger.CtxLog.Debugf("Resulted Weighted Path: UPNODE_UPF %s", name)
+					logger.CtxLog.Debugf("Resulted Weighted Path[%d]: UPNODE_UPF: %s", i, name)
 			}
 		}
 		if path[0].Type == UPNODE_AN {
 			path = path[1:]
 		}
 
-		return path
+		return selectedUPF, ip, path
 	}
-	return nil
+	return nil, nil, nil
 }
 
 func (upi *UserPlaneInformation) ExistDefaultPath(dnn string) bool {
@@ -444,7 +446,7 @@ func (upi *UserPlaneInformation) GenerateDefaultPathToUPF(selection *UPFSelectio
 	return pathExist
 }
 
-func (upi *UserPlaneInformation) GenerateDefaultPathWeight(selection *UPFSelectionParams) (path []*UPNode, pathExist bool) {
+func (upi *UserPlaneInformation) GenerateDefaultPathWeight(selection *UPFSelectionParams) (selectedUPF *UPNode, ip net.IP, path []*UPNode, pathExist bool) {
 	var source *UPNode
 
 	logger.CtxLog.Infof("!!!!!!!!!!! ENTER GenerateDefaultPathWeight !!!!!!!!!!!!")
@@ -458,7 +460,7 @@ func (upi *UserPlaneInformation) GenerateDefaultPathWeight(selection *UPFSelecti
 
 	if source == nil {
 		logger.CtxLog.Errorf("There is no AN Node in config file!")
-		return nil, false
+		return nil, nil, nil, false
 	}
 
 	// Run DFS
@@ -468,7 +470,7 @@ func (upi *UserPlaneInformation) GenerateDefaultPathWeight(selection *UPFSelecti
 		visited[upNode] = false
 	}
 
-	path, pathExist = getPathWeight(source, visited, selection, upi.WeightMap, upi.UPFIPToName)
+	selectedUPF, ip, path, pathExist = getPathWeight(source, visited, selection, upi.WeightMap, upi.UPFIPToName)
 
 	return
 }
@@ -533,7 +535,7 @@ func getPathBetween(cur *UPNode, dest *UPNode, visited map[*UPNode]bool,
 
 func getPathWeight(cur *UPNode, visited map[*UPNode]bool,
 	selection *UPFSelectionParams,
-	weights map[string]map[string]int, ipToName map[string]string) (path []*UPNode, pathExist bool) {
+	weights map[string]map[string]int, ipToName map[string]string) (selectedUPF *UPNode, ip net.IP, path []*UPNode, pathExist bool) {
 
 	curName := ipToName[cur.NodeID.ResolveNodeIdToIp().String()]
 	logger.CtxLog.Debugf("getPathWeight: At UPF: %s", curName)
@@ -553,7 +555,7 @@ func getPathWeight(cur *UPNode, visited map[*UPNode]bool,
 			}
 
 			weights[curName][name] = weights[curName][name] - 1
-			path_tail, path_exist := getPathWeight(node, visited, selection, weights, ipToName)
+			s_upf, ipaddr, path_tail, path_exist := getPathWeight(node, visited, selection, weights, ipToName)
 			logger.CtxLog.Debugf("getPathWeight: Just returned from getPathWeight with path len: %d", len(path_tail))
 
 			if path_exist {
@@ -563,16 +565,22 @@ func getPathWeight(cur *UPNode, visited map[*UPNode]bool,
 				path = append(path, path_tail...)
 				pathExist = true
 
+				selectedUPF = s_upf
+				ip = ipaddr
 				return
+			} else {
+				// TODO: if no path_exist (e.g. no empty IP pool) -- should we increase back weights[curName][name] ?			
 			}
-			// TODO: if no path_exist (e.g. no empty IP pool) -- should we increase
-			// back weights[curName][name] ?
 		}
 	}
 
 	path = make([]*UPNode, 0)
 	path = append(path, cur)
 	pathExist = true
+
+	// set anchor and ip here
+	// if we are in the context of leaf then these will be overriden below
+	// otherwise, we are in the context of most top level and just return them ..
 
 	if len(path) == 1 { // means this is an anchor 
 		logger.CtxLog.Debugf("getPathWeight: Detected Anchor UPF: %s", curName)
@@ -588,7 +596,10 @@ func getPathWeight(cur *UPNode, visited map[*UPNode]bool,
 			addr := pool.allocate()
 			if addr != nil {
 				logger.CtxLog.Infof("getPathWeight: Selected UPF: %s, addr: %s", curName, addr.String())
-				// TODO: return back addr too...
+
+				// return back anchor and addr too...
+				selectedUPF = cur
+				ip = addr
 				return
 			}
 			// if all addresses in pool are used, search next pool
@@ -599,6 +610,7 @@ func getPathWeight(cur *UPNode, visited map[*UPNode]bool,
 		pathExist = false
 	}
 
+	// Dead code ?
 	return
 }
 
