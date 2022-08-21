@@ -251,6 +251,7 @@ func (upi *UserPlaneInformation) GetUPFIDByIP(ip string) string {
 	return upi.UPFsIPtoID[ip]
 }
 
+// [WEIT] dead function
 func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNN(selection *UPFSelectionParams) (path UPPath) {
 	path, pathExist := upi.DefaultUserPlanePath[selection.String()]
 	logger.CtxLog.Traceln("In GetDefaultUserPlanePathByDNN")
@@ -379,9 +380,12 @@ func (upi *UserPlaneInformation) GenerateDefaultPathToUPF(selection *UPFSelectio
 	var source *UPNode
 
 	for _, node := range upi.AccessNetwork {
+		// [WEIT] multiple gNBs support - select the one that matches NrCellId
 		if node.Type == UPNODE_AN {
-			source = node
-			break
+			if node.NrCellId == selection.NrLocation.Ncgi.NrCellId {
+				source = node
+				break
+			}
 		}
 	}
 
@@ -525,18 +529,20 @@ func (upi *UserPlaneInformation) sortUPFListByName(upfList []*UPNode) []*UPNode 
 	return sortedUpList
 }
 
-func (upi *UserPlaneInformation) selectUPPathSource() (*UPNode, error) {
-	// if multiple gNBs exist, select one according to some criterion
+func (upi *UserPlaneInformation) selectUPPathSource(selection *UPFSelectionParams) (*UPNode, error) {
+	// [WEIT] multiple gNBs support - select the one that matches NrCellId
 	for _, node := range upi.AccessNetwork {
 		if node.Type == UPNODE_AN {
-			return node, nil
+			if node.NrCellId == selection.NrLocation.Ncgi.NrCellId {
+				return node, nil
+			}
 		}
 	}
 	return nil, errors.New("AN Node not found")
 }
 
 func (upi *UserPlaneInformation) SelectUPFAndAllocUEIP(selection *UPFSelectionParams) (*UPNode, net.IP) {
-	source, err := upi.selectUPPathSource()
+	source, err := upi.selectUPPathSource(selection)
 	if err != nil {
 		return nil, nil
 	}
