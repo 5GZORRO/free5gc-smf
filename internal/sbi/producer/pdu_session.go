@@ -84,6 +84,7 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 			Sst: createData.SNssai.Sst,
 			Sd:  createData.SNssai.Sd,
 		},
+		NrLocation: &smContext.UeLocation.NrLocation,
 	}
 	var selectedUPF *smf_context.UPNode
 	var ip net.IP
