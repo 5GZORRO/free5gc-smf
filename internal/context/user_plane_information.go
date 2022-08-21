@@ -43,6 +43,7 @@ type UPNode struct {
 	Dnn    string
 	Links  []*UPNode
 	UPF    *UPF
+	NrCellId string
 }
 
 // UPPath represent User Plane Sequence of this path
@@ -75,6 +76,7 @@ func NewUserPlaneInformation(upTopology *factory.UserPlaneInformation) *UserPlan
 		switch upNode.Type {
 		case UPNODE_AN:
 			upNode.ANIP = net.ParseIP(node.ANIP)
+			upNode.NrCellId = node.NrCellId
 			anPool[name] = upNode
 		case UPNODE_UPF:
 			// ParseIp() always return 16 bytes

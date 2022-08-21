@@ -413,6 +413,7 @@ type UPNode struct {
 	Dnn                  string                 `yaml:"dnn" valid:"type(string),minstringlength(1),optional"`
 	SNssaiInfos          []SnssaiUpfInfoItem    `yaml:"sNssaiUpfInfos,omitempty" valid:"optional"`
 	InterfaceUpfInfoList []InterfaceUpfInfoItem `yaml:"interfaces,omitempty" valid:"optional"`
+	NrCellId             string                 `yaml:"nrCellId,omitempty" valid:"optional"`
 }
 
 func (u *UPNode) validate() (bool, error) {
