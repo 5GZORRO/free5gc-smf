@@ -5,7 +5,6 @@ import (
 	"net"
 	"github.com/free5gc/smf/internal/logger"
 	"github.com/gin-gonic/gin"
-	"github.com/free5gc/util/httpwrapper"
 	smf_context "github.com/free5gc/smf/internal/context"
 	"github.com/free5gc/pfcp/pfcpType"
 	"github.com/free5gc/smf/internal/pfcp/message"
@@ -163,17 +162,17 @@ func AddUPFs(upi *smf_context.UserPlaneInformation, upTopology *factory.UserPlan
 			case net.IPv4len:
 				upNode.NodeID = pfcpType.NodeID{
 					NodeIdType:  pfcpType.NodeIdTypeIpv4Address,
-					NodeIdValue: ip,
+					IP: ip,
 				}
 			case net.IPv6len:
 				upNode.NodeID = pfcpType.NodeID{
 					NodeIdType:  pfcpType.NodeIdTypeIpv6Address,
-					NodeIdValue: ip,
+					IP: ip,
 				}
 			default:
 				upNode.NodeID = pfcpType.NodeID{
 					NodeIdType:  pfcpType.NodeIdTypeFqdn,
-					NodeIdValue: []byte(node.NodeID),
+					FQDN:       node.NodeID,
 				}
 			}
 
@@ -230,10 +229,10 @@ func AddUPFs(upi *smf_context.UserPlaneInformation, upTopology *factory.UserPlan
 		// TODO: should it be here?
 		upf := upNode.UPF
 		if upf.NodeID.NodeIdType == pfcpType.NodeIdTypeFqdn {
-			logger.AppLog.Infof("Send PFCP Association Request to UPF[%s](%s)\n", upf.NodeID.NodeIdValue,
+			logger.AppLog.Infof("Send PFCP Association Request to UPF[%s](%s)\n", upf.NodeID.FQDN,
 				upf.NodeID.ResolveNodeIdToIp().String())
 		} else {
-			logger.AppLog.Infof("Send PFCP Association Request to UPF[%s]\n", upf.NodeID.ResolveNodeIdToIp().String())
+			logger.AppLog.Infof("Send PFCP Association Request to UPF[%s]\n", upf.NodeID.IP)
 		}
 		message.SendPfcpAssociationSetupRequest(upf.NodeID)
 	}
