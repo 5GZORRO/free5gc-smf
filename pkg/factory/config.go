@@ -384,8 +384,8 @@ func (r *RoutingConfig) Validate() (bool, error) {
 
 // UserPlaneInformation describe core network userplane information
 type UserPlaneInformation struct {
-	UPNodes map[string]UPNode `json:"up_nodes,omitempty" yaml:"upNodes" valid:"required"`
-	Links   []UPLink          `json:"links,omitempty" yaml:"links" valid:"required"`
+	UPNodes map[string]UPNode `json:"upNodes,omitempty" yaml:"upNodes" valid:"optional"`
+	Links   []UPLink          `json:"links,omitempty" yaml:"links" valid:"optional"`
 }
 
 func (u *UserPlaneInformation) validate() (bool, error) {
