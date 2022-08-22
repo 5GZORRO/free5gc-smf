@@ -10,10 +10,11 @@ import (
 	"github.com/free5gc/smf/internal/pfcp/message"
 	"github.com/free5gc/smf/pkg/factory"
 	"github.com/free5gc/openapi/models"
+	"github.com/free5gc/util/httpwrapper"
 )
 
 func DeleteUpiUpf(c *gin.Context) {
-	req := http_wrapper.NewRequest(c.Request, nil)
+	req := httpwrapper.NewRequest(c.Request, nil)
 	req.Params["upfRef"] = c.Params.ByName("upfRef")
 
 	upfRef := req.Params["upfRef"]
@@ -128,7 +129,7 @@ func GetUpi(c *gin.Context) {
 			UPNodes: nodes,
 		}
 
-		httpResponse := &http_wrapper.Response{
+		httpResponse := &httpwrapper.Response{
 				Header: nil,
 				Status: http.StatusOK,
 				Body: json,
