@@ -105,7 +105,7 @@ func (node *DataPathNode) Prev() *DataPathNode {
 
 func (node *DataPathNode) ActivateUpLinkTunnel(smContext *SMContext) error {
 	var err error
-	logger.CtxLog.Traceln("In ActivateUpLinkTunnel")
+	logger.CtxLog.Traceln("In ActivateUpLinkTunnel for [%s]", string(node.UPF.NodeID.NodeIdValue))
 	node.UpLinkTunnel.SrcEndPoint = node.Prev()
 	node.UpLinkTunnel.DestEndPoint = node
 

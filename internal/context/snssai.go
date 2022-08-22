@@ -32,7 +32,7 @@ type DnnUPFInfoItem struct {
 
 // UeIPPool represent IP address pool for UE
 type UeIPPool struct {
-	ueSubNet *net.IPNet
+	UeSubNet *net.IPNet
 	pool     *pool.LazyReusePool
 }
 

@@ -61,6 +61,20 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	smContext.SMLock.Lock()
 	defer smContext.SMLock.Unlock()
 
+	if err := smf_context.DynamicLoadLinksGET(createData.Supi); err != nil {
+		logger.PduSessLog.Errorf("ERROR reloading links [%s] - using the the pre-existing ones..", err)
+	}
+
+	var DynamicLoadUERoutesGETFail bool
+	// var UEHasPreConfig bool
+
+	DynamicLoadUERoutesGETFail = false
+	if err := smf_context.DynamicLoadUERoutesGET(smContext); err != nil {
+		DynamicLoadUERoutesGETFail = true
+		logger.PduSessLog.Errorf("ERROR reloading ueroutes [%s] - using the the pre-existing ones..", err)
+	}
+
+
 	// DNN Information from config
 	smContext.DNNInfo = smf_context.RetrieveDnnInformation(createData.SNssai, createData.Dnn)
 	if smContext.DNNInfo == nil {
@@ -88,13 +102,34 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	var selectedUPF *smf_context.UPNode
 	var ip net.IP
 	selectedUPFName := ""
-	if smf_context.SMF_Self().ULCLSupport && smf_context.CheckUEHasPreConfig(createData.Supi) {
-		groupName := smf_context.GetULCLGroupNameFromSUPI(createData.Supi)
-		defaultPathPool := smf_context.GetUEDefaultPathPool(groupName)
-		if defaultPathPool != nil {
-			selectedUPFName, ip = defaultPathPool.SelectUPFAndAllocUEIPForULCL(
-				smf_context.GetUserPlaneInformation(), upfSelectionParams)
-			selectedUPF = smf_context.GetUserPlaneInformation().UPFs[selectedUPFName]
+	
+
+	UEHasPreConfig := false
+	if !DynamicLoadUERoutesGETFail {
+		UEHasPreConfig = smContext.CheckUEHasPreConfig(createData.Supi)
+	} else {
+		UEHasPreConfig = smf_context.CheckUEHasPreConfig(createData.Supi)
+	}
+	if smf_context.SMF_Self().ULCLSupport && UEHasPreConfig {
+		logger.PduSessLog.Infof("DynamicLoadUERoutesGETFail [%s]", DynamicLoadUERoutesGETFail)
+		if !DynamicLoadUERoutesGETFail {
+			groupName := smContext.GetULCLGroupNameFromSUPI(createData.Supi)
+			defaultPathPool := smContext.GetUEDefaultPathPool(groupName)
+
+			if defaultPathPool != nil {
+				selectedUPFName, ip = defaultPathPool.SelectUPFAndAllocUEIPForULCL(
+					smf_context.GetUserPlaneInformation(), upfSelectionParams)
+				selectedUPF = smf_context.GetUserPlaneInformation().UPFs[selectedUPFName]
+			}
+		} else {
+			groupName := smf_context.GetULCLGroupNameFromSUPI(createData.Supi)
+			defaultPathPool := smf_context.GetUEDefaultPathPool(groupName)
+
+			if defaultPathPool != nil {
+				selectedUPFName, ip = defaultPathPool.SelectUPFAndAllocUEIPForULCL(
+					smf_context.GetUserPlaneInformation(), upfSelectionParams)
+				selectedUPF = smf_context.GetUserPlaneInformation().UPFs[selectedUPFName]
+			}
 		}
 	} else {
 		selectedUPF, ip = smf_context.GetUserPlaneInformation().SelectUPFAndAllocUEIP(upfSelectionParams)
@@ -182,11 +217,21 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	}
 	var defaultPath *smf_context.DataPath
 
-	if smf_context.SMF_Self().ULCLSupport && smf_context.CheckUEHasPreConfig(createData.Supi) {
+	if smf_context.SMF_Self().ULCLSupport && UEHasPreConfig {
 		logger.PduSessLog.Infof("SUPI[%s] has pre-config route", createData.Supi)
-		uePreConfigPaths := smf_context.GetUEPreConfigPaths(createData.Supi, selectedUPFName)
-		smContext.Tunnel.DataPathPool = uePreConfigPaths.DataPathPool
-		smContext.Tunnel.PathIDGenerator = uePreConfigPaths.PathIDGenerator
+
+		logger.PduSessLog.Infof("DynamicLoadUERoutesGETFail [%s]", DynamicLoadUERoutesGETFail)
+		if !DynamicLoadUERoutesGETFail {
+			uePreConfigPaths := smContext.GetUEPreConfigPaths(createData.Supi, selectedUPFName)
+			smContext.Tunnel.DataPathPool = uePreConfigPaths.DataPathPool
+			smContext.Tunnel.PathIDGenerator = uePreConfigPaths.PathIDGenerator
+
+		} else {
+			uePreConfigPaths := smf_context.GetUEPreConfigPaths(createData.Supi, selectedUPFName)
+			smContext.Tunnel.DataPathPool = uePreConfigPaths.DataPathPool
+			smContext.Tunnel.PathIDGenerator = uePreConfigPaths.PathIDGenerator
+
+		}
 		defaultPath = smContext.Tunnel.DataPathPool.GetDefaultPath()
 		defaultPath.ActivateTunnelAndPDR(smContext, 255)
 		smContext.BPManager = smf_context.NewBPManager(createData.Supi)

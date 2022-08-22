@@ -177,6 +177,36 @@ func NewUserPlaneInformation(upTopology *factory.UserPlaneInformation) *UserPlan
 	return userplaneInformation
 }
 
+func ReloadLinks(upi *UserPlaneInformation, links *factory.UserPlaneInformation) {
+	// Iterate through *existing* UPF list and reset their links
+	for _, node := range upi.UPFs {
+		logger.InitLog.Debugf("ReloadLinks: Reset Links for UPF %s", string(node.UPF.NodeID.NodeIdValue))
+		node.Links = make([]*UPNode, 0)
+		//node.Links = []*UPNode{}
+	}
+	// Iterate through *existing* AN list and reset their links
+	for _, node := range upi.AccessNetwork {
+		logger.InitLog.Debugf("ReloadLinks: Reset Links for AN(s)")// AN does not have UPF.., string(node.UPF.NodeID.NodeIdValue))
+		node.Links = make([]*UPNode, 0)
+		//node.Links = []*UPNode{}
+	}
+	// Now rebuild Links list for the corresponding UPFs/ANs
+	for _, link := range links.Links {
+		nodeA := upi.UPNodes[link.A]
+		nodeB := upi.UPNodes[link.B]
+		if nodeA == nil || nodeB == nil {
+			logger.InitLog.Warningf("ReloadLinks: UPLink [%s] <=> [%s] not establish\n", link.A, link.B)
+			continue
+		}
+		nodeA.Links = append(nodeA.Links, nodeB)
+		nodeB.Links = append(nodeB.Links, nodeA)
+		if nodeA.Type == UPNODE_UPF && nodeA.Type == UPNODE_UPF {
+			// AN does not have UPF
+			logger.InitLog.Debugf("ReloadLinks: A[%s] -> B[%s]", string(nodeA.UPF.NodeID.NodeIdValue), string(nodeB.UPF.NodeID.NodeIdValue))
+		}
+	}
+}
+
 func NewUEIPPool(factoryPool *factory.UEIPPool) *UeIPPool {
 	_, ipNet, err := net.ParseCIDR(factoryPool.Cidr)
 	if err != nil {
@@ -197,7 +227,7 @@ func NewUEIPPool(factoryPool *factory.UEIPPool) *UeIPPool {
 	}
 
 	ueIPPool := &UeIPPool{
-		ueSubNet: ipNet,
+		UeSubNet: ipNet,
 		pool:     newPool,
 	}
 	return ueIPPool
@@ -556,7 +586,7 @@ func (upi *UserPlaneInformation) SelectUPFAndAllocUEIP(selection *UPFSelectionPa
 		}
 		sortedPoolList := createPoolListForSelection(pools)
 		for _, pool := range sortedPoolList {
-			logger.CtxLog.Debugf("check start UEIPPool(%+v)", pool.ueSubNet)
+			logger.CtxLog.Debugf("check start UEIPPool(%+v)", pool.UeSubNet)
 			addr := pool.allocate()
 			if addr != nil {
 				logger.CtxLog.Infof("Selected UPF: %s",
@@ -604,7 +634,7 @@ func getUEIPPool(upNode *UPNode, selection *UPFSelectionParams) []*UeIPPool {
 func (ueIPPool *UeIPPool) allocate() net.IP {
 	allocVal, res := ueIPPool.pool.Allocate()
 	if !res {
-		logger.CtxLog.Warnf("Pool is empty: %+v", ueIPPool.ueSubNet)
+		logger.CtxLog.Warnf("Pool is empty: %+v", ueIPPool.UeSubNet)
 		return nil
 	}
 	buf := make([]byte, 4)
@@ -628,7 +658,7 @@ func findPoolByAddr(upf *UPNode, addr net.IP) *UeIPPool {
 	for _, snssaiInfo := range upf.UPF.SNssaiInfos {
 		for _, dnnInfo := range snssaiInfo.DnnList {
 			for _, pool := range dnnInfo.UeIPPools {
-				if pool.ueSubNet.Contains(addr) {
+				if pool.UeSubNet.Contains(addr) {
 					return pool
 				}
 			}

@@ -128,6 +128,10 @@ type SMContext struct {
 
 	// lock
 	SMLock sync.Mutex
+
+	ULCLGroups          map[string][]string
+	UEPreConfigPathPool map[string]*UEPreConfigPaths
+	UEDefaultPathPool   map[string]*UEDefaultPaths	
 }
 
 func canonicalName(id string, pduSessID int32) string {
@@ -237,6 +241,58 @@ func (smContext *SMContext) SetCreateData(createData *models.SmContextCreateData
 	smContext.AddUeLocation = createData.AddUeLocation
 	smContext.OldPduSessionId = createData.OldPduSessionId
 	smContext.ServingNfId = createData.ServingNfId
+}
+
+func (smContext *SMContext) GetULCLGroupNameFromSUPI(SUPI string) string {
+	ulclGroups := smContext.ULCLGroups
+	for name, group := range ulclGroups {
+		for _, member := range group {
+			if member == SUPI {
+				return name
+			}
+		}
+	}
+	return ""
+}
+
+func (smContext *SMContext) GetUEDefaultPathPool(groupName string) *UEDefaultPaths {
+	return smContext.UEDefaultPathPool[groupName]
+}
+
+func (smContext *SMContext) GetUEPreConfigPaths(SUPI string, upfName string) *UEPreConfigPaths {
+	groupName := smContext.GetULCLGroupNameFromSUPI(SUPI)
+	if groupName == "" {
+		return nil
+	}
+	dataPathPool := NewDataPathPool()
+	dataPathPool[1] = smContext.UEDefaultPathPool[groupName].GetDefaultPath(upfName)
+	var i int64 = 2
+	for _, dataPath := range smContext.UEPreConfigPathPool[groupName].DataPathPool {
+		firstNode := dataPath.CopyFirstDPNode()
+		path := &DataPath{
+			Activated:     false,
+			IsDefaultPath: false,
+			Destination:   dataPath.Destination,
+			FirstDPNode:   firstNode,
+		}
+		dataPathPool[i] = path
+		i++
+	}
+	paths := &UEPreConfigPaths{
+		DataPathPool:    dataPathPool,
+		PathIDGenerator: smContext.UEPreConfigPathPool[groupName].PathIDGenerator,
+	}
+	return paths
+}
+
+func (smContext *SMContext) CheckUEHasPreConfig(SUPI string) (exist bool) {
+	groupName := smContext.GetULCLGroupNameFromSUPI(SUPI)
+	logger.CtxLog.Tracef("UE [%s] belongs to group [%s]", SUPI, groupName)
+	if groupName == "" {
+		return false
+	}
+	_, exist = smContext.UEPreConfigPathPool[groupName]
+	return
 }
 
 func (smContext *SMContext) BuildCreatedData() *models.SmContextCreatedData {

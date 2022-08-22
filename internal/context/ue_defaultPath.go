@@ -194,7 +194,7 @@ func (dfp *UEDefaultPaths) SelectUPFAndAllocUEIPForULCL(upi *UserPlaneInformatio
 		}
 		sortedPoolList := createPoolListForSelection(pools)
 		for _, pool := range sortedPoolList {
-			logger.CtxLog.Debugf("check start UEIPPool(%+v)", pool.ueSubNet)
+			logger.CtxLog.Debugf("check start UEIPPool(%+v)", pool.UeSubNet)
 			addr := pool.allocate()
 			if addr != nil {
 				logger.CtxLog.Infof("Selected UPF: %s", upfName)

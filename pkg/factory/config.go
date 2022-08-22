@@ -53,8 +53,8 @@ func (c *Config) Validate() (bool, error) {
 }
 
 type Info struct {
-	Version     string `yaml:"version,omitempty" valid:"type(string)"`
-	Description string `yaml:"description,omitempty" valid:"type(string)"`
+	Version     string `json:"version,omitempty" yaml:"version,omitempty" valid:"type(string)"`
+	Description string `json:"description,omitempty" yaml:"description,omitempty" valid:"type(string)"`
 }
 
 func (i *Info) validate() (bool, error) {
@@ -67,6 +67,7 @@ type Configuration struct {
 	Sbi                  *Sbi                 `yaml:"sbi,omitempty" valid:"required"`
 	PFCP                 *PFCP                `yaml:"pfcp,omitempty" valid:"required"`
 	NrfUri               string               `yaml:"nrfUri,omitempty" valid:"url,required"`
+	SmfExtUri            string               `yaml:"smfExtUri,omitempty"`
 	UserPlaneInformation UserPlaneInformation `yaml:"userplaneInformation" valid:"required"`
 	ServiceNameList      []string             `yaml:"serviceNameList,omitempty" valid:"required"`
 	SNssaiInfo           []SnssaiInfoItem     `yaml:"snssaiInfos,omitempty" valid:"required"`
@@ -239,10 +240,10 @@ func (p *PCSCF) validate() (bool, error) {
 }
 
 type UERoutingInfo struct {
-	Members       []string       `yaml:"members" valid:"required"`
-	AN            string         `yaml:"AN,omitempty" valid:"ipv4,optional"`
-	Topology      []UPLink       `yaml:"topology" valid:"required"`
-	SpecificPaths []SpecificPath `yaml:"specificPath,omitempty" valid:"optional"`
+	Members       []string       `json:"members" yaml:"members" valid:"required"`
+	AN            string         `json:"AN,omitempty" yaml:"AN,omitempty" valid:"ipv4,optional"`
+	Topology      []UPLink       `json:"topology" yaml:"topology" valid:"required"`
+	SpecificPaths []SpecificPath `json:"specificPath,omitempty" yaml:"specificPath,omitempty" valid:"optional"`
 }
 
 func (u *UERoutingInfo) validate() (bool, error) {
@@ -346,10 +347,10 @@ func (p *PfdDataForApp) validate() (bool, error) {
 }
 
 type RoutingConfig struct {
-	Info          *Info                        `yaml:"info" valid:"required"`
-	UERoutingInfo map[string]UERoutingInfo     `yaml:"ueRoutingInfo" valid:"required"`
-	RouteProf     map[RouteProfID]RouteProfile `yaml:"routeProfile,omitempty" valid:"optional"`
-	PfdDatas      []*PfdDataForApp             `yaml:"pfdDataForApp,omitempty" valid:"optional"`
+	Info          *Info                        `json:"info,omitempty" yaml:"info" valid:"required"`
+	UERoutingInfo map[string]UERoutingInfo     `json:"ueRoutingInfo" yaml:"ueRoutingInfo" valid:"required"`
+	RouteProf     map[RouteProfID]RouteProfile `json:"routeProfile,omitempty" yaml:"routeProfile,omitempty" valid:"optional"`
+	PfdDatas      []*PfdDataForApp             `json:"pfdDataForApp,omitempty" yaml:"pfdDataForApp,omitempty" valid:"optional"`
 }
 
 func (r *RoutingConfig) Validate() (bool, error) {
@@ -383,8 +384,8 @@ func (r *RoutingConfig) Validate() (bool, error) {
 
 // UserPlaneInformation describe core network userplane information
 type UserPlaneInformation struct {
-	UPNodes map[string]UPNode `yaml:"upNodes" valid:"required"`
-	Links   []UPLink          `yaml:"links" valid:"required"`
+	UPNodes map[string]UPNode `json:"up_nodes,omitempty" yaml:"upNodes" valid:"required"`
+	Links   []UPLink          `json:"links,omitempty" yaml:"links" valid:"required"`
 }
 
 func (u *UserPlaneInformation) validate() (bool, error) {
@@ -406,13 +407,13 @@ func (u *UserPlaneInformation) validate() (bool, error) {
 
 // UPNode represent the user plane node
 type UPNode struct {
-	Type                 string                 `yaml:"type" valid:"upNodeType,required"`
-	NodeID               string                 `yaml:"nodeID" valid:"host,optional"`
-	Addr                 string                 `yaml:"addr" valid:"host,optional"`
-	ANIP                 string                 `yaml:"anIP" valid:"host,optional"`
-	Dnn                  string                 `yaml:"dnn" valid:"type(string),minstringlength(1),optional"`
-	SNssaiInfos          []SnssaiUpfInfoItem    `yaml:"sNssaiUpfInfos,omitempty" valid:"optional"`
-	InterfaceUpfInfoList []InterfaceUpfInfoItem `yaml:"interfaces,omitempty" valid:"optional"`
+	Type                 string                 `json:"type" yaml:"type" valid:"upNodeType,required"`
+	NodeID               string                 `json:"nodeID" yaml:"nodeID" valid:"host,optional"`
+	Addr                 string                 `json:"addr" yaml:"addr" valid:"host,optional"`
+	ANIP                 string                 `json:"anIP" yaml:"anIP" valid:"host,optional"`
+	Dnn                  string                 `json:"dnn" yaml:"dnn" valid:"type(string),minstringlength(1),optional"`
+	SNssaiInfos          []SnssaiUpfInfoItem    `json:"sNssaiUpfInfos" yaml:"sNssaiUpfInfos,omitempty" valid:"optional"`
+	InterfaceUpfInfoList []InterfaceUpfInfoItem `json:"interfaces" yaml:"interfaces,omitempty" valid:"optional"`
 }
 
 func (u *UPNode) validate() (bool, error) {
@@ -436,9 +437,9 @@ func (u *UPNode) validate() (bool, error) {
 }
 
 type InterfaceUpfInfoItem struct {
-	InterfaceType   models.UpInterfaceType `yaml:"interfaceType" valid:"required"`
-	Endpoints       []string               `yaml:"endpoints" valid:"required"`
-	NetworkInstance string                 `yaml:"networkInstance" valid:"type(string),minstringlength(1),required"`
+	InterfaceType   models.UpInterfaceType `json:"interfaceType" yaml:"interfaceType" valid:"required"`
+	Endpoints       []string               `json:"endpoints" yaml:"endpoints" valid:"required"`
+	NetworkInstance string                 `json:"networkInstance" yaml:"networkInstance" valid:"type(string),minstringlength(1),required"`
 }
 
 func (i *InterfaceUpfInfoItem) validate() (bool, error) {
@@ -460,8 +461,8 @@ func (i *InterfaceUpfInfoItem) validate() (bool, error) {
 }
 
 type SnssaiUpfInfoItem struct {
-	SNssai         *models.Snssai   `yaml:"sNssai" valid:"required"`
-	DnnUpfInfoList []DnnUpfInfoItem `yaml:"dnnUpfInfoList" valid:"required"`
+	SNssai         *models.Snssai   `json:"sNssai" yaml:"sNssai" valid:"required"`
+	DnnUpfInfoList []DnnUpfInfoItem `json:"dnnUpfInfoList" yaml:"dnnUpfInfoList" valid:"required"`
 }
 
 func (s *SnssaiUpfInfoItem) validate() (bool, error) {
@@ -489,10 +490,10 @@ func (s *SnssaiUpfInfoItem) validate() (bool, error) {
 }
 
 type DnnUpfInfoItem struct {
-	Dnn             string                  `yaml:"dnn" valid:"required"`
-	DnaiList        []string                `yaml:"dnaiList" valid:"optional"`
-	PduSessionTypes []models.PduSessionType `yaml:"pduSessionTypes" valid:"optional"`
-	Pools           []UEIPPool              `yaml:"pools" valid:"optional"`
+	Dnn             string                  `json:"dnn" yaml:"dnn" valid:"required"`
+	DnaiList        []string                `json:"dnaiList" yaml:"dnaiList" valid:"optional"`
+	PduSessionTypes []models.PduSessionType `json:"pduSessionTypes" yaml:"pduSessionTypes" valid:"optional"`
+	Pools           []UEIPPool              `json:"pools" yaml:"pools" valid:"optional"`
 }
 
 func (d *DnnUpfInfoItem) validate() (bool, error) {
@@ -512,8 +513,8 @@ func (d *DnnUpfInfoItem) validate() (bool, error) {
 }
 
 type UPLink struct {
-	A string `yaml:"A" valid:"required"`
-	B string `yaml:"B" valid:"required"`
+	A string `json:"A" yaml:"A" valid:"required"`
+	B string `json:"B" yaml:"B" valid:"required"`
 }
 
 func (u *UPLink) validate() (bool, error) {
@@ -550,9 +551,9 @@ func (u *UEIPPool) validate() (bool, error) {
 }
 
 type SpecificPath struct {
-	DestinationIP   string   `yaml:"dest,omitempty" valid:"cidr,required"`
-	DestinationPort string   `yaml:"DestinationPort,omitempty" valid:"port,optional"`
-	Path            []string `yaml:"path" valid:"required"`
+	DestinationIP   string   `json:"dest,omitempty" yaml:"dest,omitempty" valid:"cidr,required"`
+	DestinationPort string   `json:"DestinationPort,omitempty" yaml:"DestinationPort,omitempty" valid:"port,optional"`
+	Path            []string `json:"path,omitempty" yaml:"path" valid:"required"`
 }
 
 func (p *SpecificPath) validate() (bool, error) {
