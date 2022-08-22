@@ -180,7 +180,7 @@ func NewUserPlaneInformation(upTopology *factory.UserPlaneInformation) *UserPlan
 func ReloadLinks(upi *UserPlaneInformation, links *factory.UserPlaneInformation) {
 	// Iterate through *existing* UPF list and reset their links
 	for _, node := range upi.UPFs {
-		logger.InitLog.Debugf("ReloadLinks: Reset Links for UPF %s", string(node.UPF.NodeID.NodeIdValue))
+		logger.InitLog.Debugf("ReloadLinks: Reset Links for UPF %s", string(node.UPF.NodeID.IP))
 		node.Links = make([]*UPNode, 0)
 		//node.Links = []*UPNode{}
 	}
@@ -202,7 +202,7 @@ func ReloadLinks(upi *UserPlaneInformation, links *factory.UserPlaneInformation)
 		nodeB.Links = append(nodeB.Links, nodeA)
 		if nodeA.Type == UPNODE_UPF && nodeA.Type == UPNODE_UPF {
 			// AN does not have UPF
-			logger.InitLog.Debugf("ReloadLinks: A[%s] -> B[%s]", string(nodeA.UPF.NodeID.NodeIdValue), string(nodeB.UPF.NodeID.NodeIdValue))
+			logger.InitLog.Debugf("ReloadLinks: A[%s] -> B[%s]", string(nodeA.UPF.NodeID.IP), string(nodeB.UPF.NodeID.IP))
 		}
 	}
 }
