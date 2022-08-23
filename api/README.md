@@ -5,7 +5,7 @@ session creation.
 
 ## Deploy the service
 
-The service is jointly deployed with smf. Refer to free5gc [docker-compose](https://github.ibm.com/WEIT/free5gc-compose/tree/e0d4742-dynamic_load) setup
+The service is jointly deployed with smf. Refer to free5gc [docker-compose](https://github.ibm.com/WEIT/free5gc-compose/blob/freeg5c-compose-e762f48-nf_build_upfs-dynamic_load/README.md) setup
 
 ## API - default topology
 
