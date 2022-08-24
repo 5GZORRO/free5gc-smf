@@ -379,11 +379,12 @@ func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionPara
 func (upi *UserPlaneInformation) GenerateDefaultPathToUPF(selection *UPFSelectionParams, destination *UPNode) bool {
 	var source *UPNode
 
-	for _, node := range upi.AccessNetwork {
+	for name, node := range upi.AccessNetwork {
 		// [WEIT] multiple gNBs support - select the one that matches NrCellId
 		if node.Type == UPNODE_AN {
 			if node.NrCellId == selection.NrLocation.Ncgi.NrCellId {
 				source = node
+				logger.CtxLog.Infoln("WEIT UE requests PDU session through gNB: ", name)
 				break
 			}
 		}
@@ -531,9 +532,10 @@ func (upi *UserPlaneInformation) sortUPFListByName(upfList []*UPNode) []*UPNode 
 
 func (upi *UserPlaneInformation) selectUPPathSource(selection *UPFSelectionParams) (*UPNode, error) {
 	// [WEIT] multiple gNBs support - select the one that matches NrCellId
-	for _, node := range upi.AccessNetwork {
+	for name, node := range upi.AccessNetwork {
 		if node.Type == UPNODE_AN {
 			if node.NrCellId == selection.NrLocation.Ncgi.NrCellId {
+				logger.CtxLog.Infoln("WEIT UE requests PDU session through gNB: ", name)
 				return node, nil
 			}
 		}
