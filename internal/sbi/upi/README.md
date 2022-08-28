@@ -64,12 +64,12 @@ curl -X POST \
 {"status":"OK"}
 ```
 
-### Delete UPF
+### Delete UPF/gNB
 
 Delete UPF definition from the datamodel.
 
 ```
-curl -H "Content-type: application/json" -X DELETE http://smf_address:8000/upi/v1/upf/<upf name>
+curl -H "Content-type: application/json" -X DELETE http://smf_address:8000/upi/v1/upf/<upf or gnb name>
 ```
 
 REST path:
@@ -86,7 +86,7 @@ Return:
 
 ### Dump UPFs
 
-Get UPF datamodel
+Get UPF datamodel. This also includes gNBs
 
 ```
 curl -H "Content-type: application/json" -X GET http://smf_address:8000/upi/v1/upf
@@ -195,12 +195,25 @@ curl http://127.0.0.2:8000/upi/v1/upf
     },
     "gNB1": {
       "type": "AN",
-      "node_id": "",
-      "an_ip": "<nil>",
-      "dnn": ""
+      "nodeID": "",
+      "addr": "",
+      "anIP": "<nil>",
+      "dnn": "",
+      "sNssaiUpfInfos": null,
+      "interfaces": null,
+      "nrCellId": "000000010"
+    },
+    "gNB2": {
+      "type": "AN",
+      "nodeID": "",
+      "addr": "",
+      "anIP": "<nil>",
+      "dnn": "",
+      "sNssaiUpfInfos": null,
+      "interfaces": null,
+      "nrCellId": "000000020"
     }
   }
 }
 
 ```
-
