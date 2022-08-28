@@ -25,7 +25,9 @@ func DeleteUpiUpf(c *gin.Context) {
 	if ok {
 		found = true
 		logger.InitLog.Infof("UPF [%s] FOUND and is about to get removed.\n", upfRef)
-		smf_context.RemoveUPFNodeByNodeID(upNode.UPF.NodeID)
+		if upNode.Type == "UPF" {
+			smf_context.RemoveUPFNodeByNodeID(upNode.UPF.NodeID)
+		}
 		delete(upi.UPNodes, upfRef)
 	}
 
@@ -48,6 +50,7 @@ func GetUpi(c *gin.Context) {
 					case smf_context.UPNODE_AN:
 					u.Type = "AN"
 					u.ANIP = upNode.ANIP.String()
+					u.NrCellId = upNode.NrCellId
 					default:
 					u.Type = "Unkown"
 				}
@@ -211,6 +214,10 @@ func AddUPFs(upi *smf_context.UserPlaneInformation, upTopology *factory.UserPlan
 			}
 			upNode.UPF.SNssaiInfos = snssaiInfos
 			upi.UPFs[name] = upNode
+		case smf_context.UPNODE_AN:
+			upNode.ANIP = net.ParseIP(node.ANIP)
+			upNode.NrCellId = node.NrCellId
+			upi.AccessNetwork[name] = upNode
 		default:
 			logger.InitLog.Warningf("invalid UPNodeType: %s\n", upNode.Type)
 		}
