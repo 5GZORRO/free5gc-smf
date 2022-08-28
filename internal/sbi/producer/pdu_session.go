@@ -58,6 +58,12 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	smContext.SetCreateData(createData)
 	smContext.SmStatusNotifyUri = createData.SmContextStatusUri
 
+	logger.CtxLog.Infof("smContext.UeLocation %+v", smContext.UeLocation)
+	logger.CtxLog.Infof("smContext.UeLocation.NrLocation %+v", smContext.UeLocation.NrLocation)
+	logger.CtxLog.Infof("smContext.UeLocation.NrLocation.Tai %+v", smContext.UeLocation.NrLocation.Tai)
+	logger.CtxLog.Infof("smContext.UeLocation.NrLocation.Ncgi %+v", smContext.UeLocation.NrLocation.Ncgi)
+	logger.CtxLog.Infof("smContext.UeLocation.NrLocation.GlobalGnbId %+v", smContext.UeLocation.NrLocation.GlobalGnbId)
+
 	smContext.SMLock.Lock()
 	defer smContext.SMLock.Unlock()
 
@@ -98,6 +104,7 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 			Sst: createData.SNssai.Sst,
 			Sd:  createData.SNssai.Sd,
 		},
+		NrLocation: smContext.UeLocation.NrLocation,
 	}
 	var selectedUPF *smf_context.UPNode
 	var ip net.IP
