@@ -30,6 +30,7 @@ import (
 	"github.com/free5gc/smf/pkg/factory"
 	"github.com/free5gc/util/httpwrapper"
 	logger_util "github.com/free5gc/util/logger"
+	"github.com/free5gc/smf/internal/sbi/upi"
 )
 
 type SMF struct {
@@ -264,6 +265,7 @@ func (smf *SMF) Start() {
 			eventexposure.AddService(router)
 		}
 	}
+	upi.AddService(router)
 	udp.Run(pfcp.Dispatch)
 
 	for _, upf := range context.SMF_Self().UserPlaneInformation.UPFs {
