@@ -46,11 +46,12 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 		return httpResponse
 	}
 
-	// Check duplicate SM Context
+//	// Check duplicate SM Context
 	createData := request.JsonData
-	if dup_smCtx := smf_context.GetSMContextById(createData.Supi, createData.PduSessionId); dup_smCtx != nil {
-		HandlePDUSessionSMContextLocalRelease(dup_smCtx, createData)
-	}
+	// [WEIT] comment the below until removing smcontex belonging to a deleted UPF
+//	if dup_smCtx := smf_context.GetSMContextById(createData.Supi, createData.PduSessionId); dup_smCtx != nil {
+//		HandlePDUSessionSMContextLocalRelease(dup_smCtx, createData)
+//	}
 
 	smContext := smf_context.NewSMContext(createData.Supi, createData.PduSessionId)
 	smContext.SMContextState = smf_context.ActivePending

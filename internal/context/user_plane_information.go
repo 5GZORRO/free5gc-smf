@@ -37,12 +37,12 @@ const (
 
 // UPNode represent the user plane node topology
 type UPNode struct {
-	Type   UPNodeType
-	NodeID pfcpType.NodeID
-	ANIP   net.IP
-	Dnn    string
-	Links  []*UPNode
-	UPF    *UPF
+	Type     UPNodeType
+	NodeID   pfcpType.NodeID
+	ANIP     net.IP
+	Dnn      string
+	Links    []*UPNode
+	UPF      *UPF
 	NrCellId string
 }
 
@@ -188,7 +188,7 @@ func ReloadLinks(upi *UserPlaneInformation, links *factory.UserPlaneInformation)
 	}
 	// Iterate through *existing* AN list and reset their links
 	for _, node := range upi.AccessNetwork {
-		logger.InitLog.Debugf("ReloadLinks: Reset Links for AN(s)")// AN does not have UPF.., string(node.UPF.NodeID.NodeIdValue))
+		logger.InitLog.Debugf("ReloadLinks: Reset Links for AN(s)") // AN does not have UPF.., string(node.UPF.NodeID.NodeIdValue))
 		node.Links = make([]*UPNode, 0)
 		//node.Links = []*UPNode{}
 	}
@@ -281,34 +281,36 @@ func (upi *UserPlaneInformation) GetUPFIDByIP(ip string) string {
 	return upi.UPFsIPtoID[ip]
 }
 
-// [WEIT] dead function
-func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNN(selection *UPFSelectionParams) (path UPPath) {
-	path, pathExist := upi.DefaultUserPlanePath[selection.String()]
-	logger.CtxLog.Traceln("In GetDefaultUserPlanePathByDNN")
-	logger.CtxLog.Traceln("selection: ", selection.String())
-	if pathExist {
-		return
-	} else {
-		pathExist = upi.GenerateDefaultPath(selection)
-		if pathExist {
-			return upi.DefaultUserPlanePath[selection.String()]
-		}
-	}
-	return nil
-}
+// [WEIT] dead function in free5gc v3.1.1
+//func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNN(selection *UPFSelectionParams) (path UPPath) {
+//	path, pathExist := upi.DefaultUserPlanePath[selection.String()]
+//	logger.CtxLog.Traceln("In GetDefaultUserPlanePathByDNN")
+//	logger.CtxLog.Traceln("selection: ", selection.String())
+//	if pathExist {
+//		return
+//	} else {
+//		pathExist = upi.GenerateDefaultPath(selection)
+//		if pathExist {
+//			return upi.DefaultUserPlanePath[selection.String()]
+//		}
+//	}
+//	return nil
+//}
 
 func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNNAndUPF(selection *UPFSelectionParams,
 	upf *UPNode) (path UPPath) {
+	// TODO: disable path cache until cache management is in place
 	nodeID := upf.NodeID.ResolveNodeIdToIp().String()
 
-	if upi.DefaultUserPlanePathToUPF[selection.String()] != nil {
-		path, pathExist := upi.DefaultUserPlanePathToUPF[selection.String()][nodeID]
-		logger.CtxLog.Traceln("In GetDefaultUserPlanePathByDNN")
-		logger.CtxLog.Traceln("selection: ", selection.String())
-		if pathExist {
-			return path
-		}
-	}
+	// [WEIT] comment the below until we update cached path on delete UPF
+	//	if upi.DefaultUserPlanePathToUPF[selection.String()] != nil {
+	//		path, pathExist := upi.DefaultUserPlanePathToUPF[selection.String()][nodeID]
+	//		logger.CtxLog.Traceln("In GetDefaultUserPlanePathByDNN")
+	//		logger.CtxLog.Traceln("selection: ", selection.String())
+	//		if pathExist {
+	//			return path
+	//		}
+	//	}
 	if pathExist := upi.GenerateDefaultPathToUPF(selection, upf); pathExist {
 		return upi.DefaultUserPlanePathToUPF[selection.String()][nodeID]
 	}
@@ -360,51 +362,52 @@ func GenerateDataPath(upPath UPPath, smContext *SMContext) *DataPath {
 	return dataPath
 }
 
-func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionParams) bool {
-	var source *UPNode
-	var destinations []*UPNode
-
-	for _, node := range upi.AccessNetwork {
-		if node.Type == UPNODE_AN {
-			source = node
-			break
-		}
-	}
-
-	if source == nil {
-		logger.CtxLog.Errorf("There is no AN Node in config file!")
-		return false
-	}
-
-	destinations = upi.selectMatchUPF(selection)
-
-	if len(destinations) == 0 {
-		logger.CtxLog.Errorf("Can't find UPF with DNN[%s] S-NSSAI[sst: %d sd: %s] DNAI[%s]\n", selection.Dnn,
-			selection.SNssai.Sst, selection.SNssai.Sd, selection.Dnai)
-		return false
-	} else {
-		logger.CtxLog.Tracef("Find UPF with DNN[%s] S-NSSAI[sst: %d sd: %s] DNAI[%s]\n", selection.Dnn,
-			selection.SNssai.Sst, selection.SNssai.Sd, selection.Dnai)
-	}
-
-	// Run DFS
-	visited := make(map[*UPNode]bool)
-
-	for _, upNode := range upi.UPNodes {
-		visited[upNode] = false
-	}
-
-	path, pathExist := getPathBetween(source, destinations[0], visited, selection)
-
-	if pathExist {
-		if path[0].Type == UPNODE_AN {
-			path = path[1:]
-		}
-		upi.DefaultUserPlanePath[selection.String()] = path
-	}
-
-	return pathExist
-}
+// [WEIT] dead function in free5gc v3.1.1
+//func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionParams) bool {
+//	var source *UPNode
+//	var destinations []*UPNode
+//
+//	for _, node := range upi.AccessNetwork {
+//		if node.Type == UPNODE_AN {
+//			source = node
+//			break
+//		}
+//	}
+//
+//	if source == nil {
+//		logger.CtxLog.Errorf("There is no AN Node in config file!")
+//		return false
+//	}
+//
+//	destinations = upi.selectMatchUPF(selection)
+//
+//	if len(destinations) == 0 {
+//		logger.CtxLog.Errorf("Can't find UPF with DNN[%s] S-NSSAI[sst: %d sd: %s] DNAI[%s]\n", selection.Dnn,
+//			selection.SNssai.Sst, selection.SNssai.Sd, selection.Dnai)
+//		return false
+//	} else {
+//		logger.CtxLog.Tracef("Find UPF with DNN[%s] S-NSSAI[sst: %d sd: %s] DNAI[%s]\n", selection.Dnn,
+//			selection.SNssai.Sst, selection.SNssai.Sd, selection.Dnai)
+//	}
+//
+//	// Run DFS
+//	visited := make(map[*UPNode]bool)
+//
+//	for _, upNode := range upi.UPNodes {
+//		visited[upNode] = false
+//	}
+//
+//	path, pathExist := getPathBetween(source, destinations[0], visited, selection)
+//
+//	if pathExist {
+//		if path[0].Type == UPNODE_AN {
+//			path = path[1:]
+//		}
+//		upi.DefaultUserPlanePath[selection.String()] = path
+//	}
+//
+//	return pathExist
+//}
 
 func (upi *UserPlaneInformation) GenerateDefaultPathToUPF(selection *UPFSelectionParams, destination *UPNode) bool {
 	var source *UPNode
@@ -447,26 +450,27 @@ func (upi *UserPlaneInformation) GenerateDefaultPathToUPF(selection *UPFSelectio
 	return pathExist
 }
 
-func (upi *UserPlaneInformation) selectMatchUPF(selection *UPFSelectionParams) []*UPNode {
-	upList := make([]*UPNode, 0)
-
-	for _, upNode := range upi.UPFs {
-		for _, snssaiInfo := range upNode.UPF.SNssaiInfos {
-			currentSnssai := &snssaiInfo.SNssai
-			targetSnssai := selection.SNssai
-
-			if currentSnssai.Equal(targetSnssai) {
-				for _, dnnInfo := range snssaiInfo.DnnList {
-					if dnnInfo.Dnn == selection.Dnn && dnnInfo.ContainsDNAI(selection.Dnai) {
-						upList = append(upList, upNode)
-						break
-					}
-				}
-			}
-		}
-	}
-	return upList
-}
+// [WEIT] dead function in free5gc v3.1.1
+//func (upi *UserPlaneInformation) selectMatchUPF(selection *UPFSelectionParams) []*UPNode {
+//	upList := make([]*UPNode, 0)
+//
+//	for _, upNode := range upi.UPFs {
+//		for _, snssaiInfo := range upNode.UPF.SNssaiInfos {
+//			currentSnssai := &snssaiInfo.SNssai
+//			targetSnssai := selection.SNssai
+//
+//			if currentSnssai.Equal(targetSnssai) {
+//				for _, dnnInfo := range snssaiInfo.DnnList {
+//					if dnnInfo.Dnn == selection.Dnn && dnnInfo.ContainsDNAI(selection.Dnai) {
+//						upList = append(upList, upNode)
+//						break
+//					}
+//				}
+//			}
+//		}
+//	}
+//	return upList
+//}
 
 func getPathBetween(cur *UPNode, dest *UPNode, visited map[*UPNode]bool,
 	selection *UPFSelectionParams) (path []*UPNode, pathExist bool) {

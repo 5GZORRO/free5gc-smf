@@ -30,6 +30,10 @@ func DeleteUpiUpf(c *gin.Context) {
 		}
 		delete(upi.UPNodes, upfRef)
 	}
+	_, ok2 := upi.UPFs[upfRef]
+	if ok2 {
+		delete(upi.UPFs, upfRef)
+	}
 
 	if found {
 		c.JSON(http.StatusNoContent, gin.H{})
